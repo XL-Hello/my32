@@ -1,11 +1,25 @@
 | 支持的目标 | ESP32 | ESP32-C2 | ESP32-C3 | ESP32-C6 | ESP32-H2 | ESP32-S2 | ESP32-S3 |
 | ---------- | ----- | -------- | -------- | -------- | -------- | -------- | -------- |
 
-# Hello World 示例
+# product_A 固件工程
 
-本示例启动一个 FreeRTOS 任务并输出 `Hello World`。
+本工程按应用代码、应用组件和 SDK 分层管理，当前目标为 ESP32-S3。
 
-有关示例的更多信息，请参阅上级 `examples` 目录中的 `README.md`。
+## 目录结构
+
+```text
+product_A/
+├── app/                    应用入口和产品业务编排
+├── components/             可复用的应用层组件
+│   ├── platform/           平台适配与日志等基础能力
+│   └── rgb_led/            RGB LED 应用组件
+├── esp-idf/                固定版本的 ESP-IDF SDK 源码副本
+├── CMakeLists.txt
+├── sdkconfig
+└── pytest_hello_world.py
+```
+
+`esp-idf/` 来自 ESP-IDF v5.1.2。SDK 的必要改动应单独记录，避免与 `app/`、`components/` 中的产品代码混杂。
 
 ## 使用方法
 
@@ -14,32 +28,26 @@
 - [ESP32 入门指南](https://docs.espressif.com/projects/esp-idf/zh_CN/stable/esp32/get-started/index.html)
 - [ESP32-S2 入门指南](https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32s2/get-started/index.html)
 
-在已启用 ESP-IDF 环境的终端中，可以使用以下常用命令：
+首次使用时仍需在开发机安装 ESP-IDF 对应的编译工具链。默认构建使用全局 SDK `/home/xl/.espressif/v5.1.2/esp-idf`：
 
 ```bash
-idf.py set-target esp32s3
-idf.py build
-idf.py -p PORT flash monitor
+./build.sh build
+./build.sh flash /dev/ttyACM0
 ```
+
+若需切换到项目内的 SDK 副本，必须在当前终端执行：
+
+```bash
+source ./build.sh env
+./build.sh build
+./build.sh flash /dev/ttyACM0
+```
+
+切换后脚本会显示当前的 ESP-IDF 路径。`source` 的作用是让 `IDF_PATH` 在当前终端持续有效；直接执行 `./build.sh env` 只会在该脚本进程内临时切换，结束后不会影响终端。
 
 请将 `esp32s3` 替换为实际目标芯片，并将 `PORT` 替换为开发板串口，例如 `/dev/ttyUSB0`。
 
-## 示例目录内容
-
-`hello_world` 项目包含一个 C 语言源文件 [hello_world_main.c](main/hello_world_main.c)，该文件位于 [main](main) 目录中。
-
-ESP-IDF 项目使用 CMake 构建。项目中的 `CMakeLists.txt` 文件包含源文件、组件和目标相关的构建配置。
-
-```text
-├── CMakeLists.txt
-├── pytest_hello_world.py      用于自动化测试的 Python 脚本
-├── main
-│   ├── CMakeLists.txt
-│   └── hello_world_main.c
-└── README.md                  当前文档
-```
-
-有关 ESP-IDF 项目结构和构建机制的更多信息，请参阅 ESP-IDF 编程指南中的[构建系统](https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/build-system.html)。
+新增产品功能时，将入口与业务编排放在 `app/`；可跨业务复用的能力放在 `components/<组件名>/`；除 SDK 升级或必要补丁外，不在 `esp-idf/` 中开发产品功能。
 
 ## 故障排查
 
