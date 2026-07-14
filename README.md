@@ -1,53 +1,54 @@
-| Supported Targets | ESP32 | ESP32-C2 | ESP32-C3 | ESP32-C6 | ESP32-H2 | ESP32-S2 | ESP32-S3 |
-| ----------------- | ----- | -------- | -------- | -------- | -------- | -------- | -------- |
+| 支持的目标 | ESP32 | ESP32-C2 | ESP32-C3 | ESP32-C6 | ESP32-H2 | ESP32-S2 | ESP32-S3 |
+| ---------- | ----- | -------- | -------- | -------- | -------- | -------- | -------- |
 
-# Hello World Example
+# Hello World 示例
 
-Starts a FreeRTOS task to print "Hello World".
+本示例启动一个 FreeRTOS 任务并输出 `Hello World`。
 
-(See the README.md file in the upper level 'examples' directory for more information about examples.)
+有关示例的更多信息，请参阅上级 `examples` 目录中的 `README.md`。
 
-## How to use example
+## 使用方法
 
-Follow detailed instructions provided specifically for this example.
+请根据开发板所搭载的 Espressif 芯片选择对应的入门指南：
 
-Select the instructions depending on Espressif chip installed on your development board:
+- [ESP32 入门指南](https://docs.espressif.com/projects/esp-idf/zh_CN/stable/esp32/get-started/index.html)
+- [ESP32-S2 入门指南](https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32s2/get-started/index.html)
 
-- [ESP32 Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/stable/get-started/index.html)
-- [ESP32-S2 Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/get-started/index.html)
+在已启用 ESP-IDF 环境的终端中，可以使用以下常用命令：
 
-
-## Example folder contents
-
-The project **hello_world** contains one source file in C language [hello_world_main.c](main/hello_world_main.c). The file is located in folder [main](main).
-
-ESP-IDF projects are built using CMake. The project build configuration is contained in `CMakeLists.txt` files that provide set of directives and instructions describing the project's source files and targets (executable, library, or both).
-
-Below is short explanation of remaining files in the project folder.
-
+```bash
+idf.py set-target esp32s3
+idf.py build
+idf.py -p PORT flash monitor
 ```
+
+请将 `esp32s3` 替换为实际目标芯片，并将 `PORT` 替换为开发板串口，例如 `/dev/ttyUSB0`。
+
+## 示例目录内容
+
+`hello_world` 项目包含一个 C 语言源文件 [hello_world_main.c](main/hello_world_main.c)，该文件位于 [main](main) 目录中。
+
+ESP-IDF 项目使用 CMake 构建。项目中的 `CMakeLists.txt` 文件包含源文件、组件和目标相关的构建配置。
+
+```text
 ├── CMakeLists.txt
-├── pytest_hello_world.py      Python script used for automated testing
+├── pytest_hello_world.py      用于自动化测试的 Python 脚本
 ├── main
 │   ├── CMakeLists.txt
 │   └── hello_world_main.c
-└── README.md                  This is the file you are currently reading
+└── README.md                  当前文档
 ```
 
-For more information on structure and contents of ESP-IDF projects, please refer to Section [Build System](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html) of the ESP-IDF Programming Guide.
+有关 ESP-IDF 项目结构和构建机制的更多信息，请参阅 ESP-IDF 编程指南中的[构建系统](https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/build-system.html)。
 
-## Troubleshooting
+## 故障排查
 
-* Program upload failure
+### 固件烧录失败
 
-    * Hardware connection is not correct: run `idf.py -p PORT monitor`, and reboot your board to see if there are any output logs.
-    * The baud rate for downloading is too high: lower your baud rate in the `menuconfig` menu, and try again.
+- 检查硬件连接是否正确。运行 `idf.py -p PORT monitor`，然后重启开发板并查看串口日志。
+- 如果下载波特率过高，请在 `menuconfig` 中降低波特率后重新烧录。
 
-## Technical support and feedback
+## 技术支持与反馈
 
-Please use the following feedback channels:
-
-* For technical queries, go to the [esp32.com](https://esp32.com/) forum
-* For a feature request or bug report, create a [GitHub issue](https://github.com/espressif/esp-idf/issues)
-
-We will get back to you as soon as possible.
+- 技术问题可前往 [esp32.com](https://esp32.com/) 论坛讨论。
+- 功能建议或缺陷报告可在 ESP-IDF 仓库中创建 [GitHub Issue](https://github.com/espressif/esp-idf/issues)。
