@@ -11,6 +11,7 @@
 #include "freertos/task.h"
 #include "esp_chip_info.h"
 #include "esp_flash.h"
+#include "lcd.h"
 #include "rgb_led.h"
 #include "ws2812b.h"
 
@@ -23,14 +24,21 @@ void my_main()
 {
     vTaskDelay(pdMS_TO_TICKS(3000));
 
+    // ILI9341 LCD
+    ESP_ERROR_CHECK(lcd_init());
+    ESP_ERROR_CHECK(lcd_test_colors());
+    //ESP_ERROR_CHECK(lcd_test_version());
+
+    log_info("ILI9341 LCD color test completed");
+
     // RGB LED
     ESP_ERROR_CHECK(rgb_led_init());
-    ESP_ERROR_CHECK(rgb_led_start_chase(2000));
+    //ESP_ERROR_CHECK(rgb_led_start_chase(2000));
     log_info("RGB LED power-on self-test is running");
 
     // ws2812b
     ws2812b_init();
-    ws2812b_set_pixel(0, 5, 5, 0);
+    ws2812b_set_pixel(0, 5, 5, 5);
     ws2812b_refresh();
     log_info("ws2812b initialized");
 
@@ -38,7 +46,7 @@ void my_main()
 
     while (true) {
         vTaskDelay(pdMS_TO_TICKS(1000));
-        log_info("is running\n");
+        //log_info("is running\n");
     }
 }
 
