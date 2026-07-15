@@ -25,6 +25,8 @@ static esp_lcd_panel_io_handle_t s_panel_io;
 static SemaphoreHandle_t s_color_trans_done;
 static TaskHandle_t s_color_test_task;
 static TaskHandle_t s_version_test_task;
+static lcd_color_trans_done_cb_t s_color_trans_done_callback;
+static void *s_color_trans_done_user_ctx;
 
 static bool lcd_color_trans_done_callback(esp_lcd_panel_io_handle_t panel_io,
                                           esp_lcd_panel_io_event_data_t *event_data,
@@ -34,7 +36,13 @@ static bool lcd_color_trans_done_callback(esp_lcd_panel_io_handle_t panel_io,
     (void)event_data;
     BaseType_t high_task_woken = pdFALSE;
     xSemaphoreGiveFromISR((SemaphoreHandle_t)user_ctx, &high_task_woken);
-    return high_task_woken == pdTRUE;
+
+    bool callback_should_yield = false;
+    if (s_color_trans_done_callback != NULL) {
+        callback_should_yield = s_color_trans_done_callback(s_color_trans_done_user_ctx);
+    }
+
+    return high_task_woken == pdTRUE || callback_should_yield;
 }
 
 static uint16_t lcd_rgb565(uint8_t red, uint8_t green, uint8_t blue)
@@ -119,7 +127,7 @@ esp_err_t lcd_init(void)
         err = esp_lcd_panel_init(s_panel);
     }
     if (err == ESP_OK) {
-        err = esp_lcd_panel_mirror(s_panel, false, false);
+        err = esp_lcd_panel_mirror(s_panel, false, true);
     }
     if (err == ESP_OK) {
         err = esp_lcd_panel_disp_on_off(s_panel, true);
@@ -133,6 +141,29 @@ esp_err_t lcd_init(void)
     log_info("ILI9341 initialized: SPI=%d SCLK=%d MOSI=%d MISO=%d CS=%d DC=%d RST=%d",
              LCD_HOST, LCD_PIN_SCLK, LCD_PIN_MOSI, LCD_PIN_MISO,
              LCD_PIN_CS, LCD_PIN_DC, LCD_PIN_RST);
+    return ESP_OK;
+}
+
+esp_err_t lcd_draw_bitmap(int x_start, int y_start, int x_end, int y_end,
+                          const void *color_data)
+{
+    if (s_panel == NULL) {
+        return ESP_ERR_INVALID_STATE;
+    }
+
+    return esp_lcd_panel_draw_bitmap(s_panel, x_start, y_start, x_end, y_end,
+                                     color_data);
+}
+
+esp_err_t lcd_set_color_trans_done_callback(lcd_color_trans_done_cb_t callback,
+                                            void *user_ctx)
+{
+    if (s_panel_io == NULL) {
+        return ESP_ERR_INVALID_STATE;
+    }
+
+    s_color_trans_done_callback = callback;
+    s_color_trans_done_user_ctx = user_ctx;
     return ESP_OK;
 }
 

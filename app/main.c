@@ -14,6 +14,7 @@
 #include "lcd.h"
 #include "rgb_led.h"
 #include "ws2812b.h"
+#include "display/lvgl_adapt/lvgl_port.h"
 
 #define LOG_TAG "main"
 #include "platform_log.h"
@@ -22,18 +23,19 @@
 
 void my_main()
 {
-    vTaskDelay(pdMS_TO_TICKS(3000));
+    //vTaskDelay(pdMS_TO_TICKS(3000));
 
     // ILI9341 LCD
-    ESP_ERROR_CHECK(lcd_init());
-    ESP_ERROR_CHECK(lcd_test_colors());
+    // ESP_ERROR_CHECK(lcd_init());
+    // ESP_ERROR_CHECK(lcd_test_colors());
     //ESP_ERROR_CHECK(lcd_test_version());
-
-    log_info("ILI9341 LCD color test completed");
+    log_info("LVGL initialization started");
+    lvgl_port_init();
+    log_info("LVGL tick timer and handler task started");
 
     // RGB LED
     ESP_ERROR_CHECK(rgb_led_init());
-    //ESP_ERROR_CHECK(rgb_led_start_chase(2000));
+    ESP_ERROR_CHECK(rgb_led_start_chase(2000));
     log_info("RGB LED power-on self-test is running");
 
     // ws2812b

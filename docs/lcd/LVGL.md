@@ -70,25 +70,25 @@ LVGL 输入设备 read_cb
 
 ## 2. 当前仓库的真实状态
 
-目前仓库中的 `app/main.c` 主要初始化 RGB LED 和 WS2812B，`app/CMakeLists.txt` 也没有引入 LCD 或 LVGL 依赖。因此当前还不能直接编译出 LCD UI。
+目前仓库中的 `app/main.c` 已经初始化 ILI9341，并启动纯色测试任务；`components/LCD` 已包含 SPI2、`esp_lcd` 和 ILI9341 panel 驱动。应用组件尚未引入 LVGL，因此当前还不能显示 LVGL UI。
 
 | 能力 | 当前状态 |
 | --- | --- |
 | ESP32-S3 工程 | 已存在 |
 | ILI9341 接线资料 | 已整理 |
 | HR2046 资料 | 已整理，具体协议仍需实测确认 |
-| SPI LCD 驱动 | 尚未加入当前应用 |
+| SPI LCD 驱动 | 已加入，纯色显示已实机验证 |
 | LVGL 依赖 | 尚未加入当前应用 |
 | LVGL 显示适配层 | 尚未加入 |
 | LVGL 触摸适配层 | 尚未加入 |
-| LCD GPIO 分配 | 尚未确定 |
+| LCD GPIO 分配 | 已确定，`CS` 使用 GPIO7 |
 | 可显示 UI 的示例代码 | 尚未加入 |
 
 所以，“从 LCD 到 LVGL”不是只添加一个 `lv_label_create()`，而是要完成一条硬件和软件链路。
 
 ### 当前调试记录
 
-截至目前，已完成 LCD 背光的硬件验证：
+截至目前，已完成 LCD 背光和 ILI9341 显示链路验证：
 
 ```text
 LCD VCC → 3.3V
@@ -97,9 +97,11 @@ LCD LED → 3.3V
 验证结果：屏幕背光已点亮
 ```
 
-这说明模块电源连接和背光回路当前可以工作，但**不代表 ILI9341 已经初始化，也不代表 SPI 显示链路正常**。下一步仍需连接并验证 `SCK`、`MOSI/SDI`、`CS`、`DC`、`RESET`，然后进行 ILI9341 纯色显示测试。
+背光验证只说明电源和背光回路正常；现在的纯色实测则进一步证明 `SCK`、`MOSI`、`CS`、`DC`、`RESET`、ILI9341 初始化和 RGB565 像素发送链路可以工作。
 
-软件验证进度：已在 `components/LCD` 中实现 SPI2 和 ILI9341 初始化、RGB565 分块填充及五色测试，并在 `app/main.c` 中调用；使用 ESP-IDF 5.1.2 构建已通过。当前仍未完成烧录到开发板后的实机纯色验证。
+软件和实机调试进度：`components/LCD` 已实现 SPI2、ILI9341 初始化、RGB565 分块填充及红、绿、蓝、白、黑五色循环；`app/main.c` 调用 `lcd_init()` 与 `lcd_test_colors()` 后，屏幕已经能显示不同纯色。实际 `CS` 已从此前记录的 GPIO10 改为 **GPIO7**，对应 `components/LCD/include/lcd.h` 中的 `LCD_PIN_CS`。
+
+下一阶段不再继续增加纯色图案，而是依次完成：创建 LVGL 单绘图缓冲区、注册显示驱动、启动 LVGL tick 与任务、创建第一个 UI demo。开始前应停止 `lcd_test_colors()`：它与 LVGL 都会向同一个 ILI9341 panel 发起绘制，不能同时运行。
 
 ## 3. LVGL 适配所涉及的角色
 
@@ -217,7 +219,7 @@ lv_timer_handler();
 | `SCK` | `GPIO12` |
 | `SDI/MOSI` | `GPIO11` |
 | `SDO/MISO` | `GPIO13` |
-| `CS` | `GPIO10` |
+| `CS` | `GPIO7` |
 | `DC` | `GPIO9` |
 | `RESET` | `GPIO8` |
 | `LED` | `3.3V` |
@@ -238,7 +240,7 @@ spi_bus_config_t bus_config = {
 ESP_ERROR_CHECK(spi_bus_initialize(LCD_HOST, &bus_config, SPI_DMA_CH_AUTO));
 ```
 
-初次验证建议从约 `20 MHz` 开始。SPI 频率越高，刷新越快，但长线、杜邦线、供电和模块电平转换都会降低稳定性。
+当前代码使用 `40 MHz`（`LCD_PIXEL_CLOCK_HZ`），且纯色显示已验证通过。若接入 LVGL 后出现花屏、偶发超时或颜色错误，可先降回 `20 MHz` 排除信号完整性问题。SPI 频率越高，刷新越快，但长线、杜邦线、供电和模块电平转换都会降低稳定性。
 
 ### 第 3 步：创建 LCD SPI IO 和 ILI9341 panel
 
@@ -306,7 +308,7 @@ lcd_test_colors()
 
 应用启动后，串口应看到 `ILI9341 initialized` 和 `LCD color test task started`，随后颜色日志会持续循环输出，屏幕每秒切换一次红、绿、蓝、白、黑。如果构建时缺少 `esp_lcd_ili9341`，需要先通过 ESP-IDF Component Manager 获取 `espressif/esp_lcd_ili9341` 依赖。
 
-当前构建结果：ESP-IDF 5.1.2 已成功解析 `espressif/esp_lcd_ili9341`，工程已生成 `build/hello_world.bin`。下一步是烧录并观察实机颜色变化；如果串口能看到初始化日志但屏幕无变化，应优先检查实际接线、`CS/DC/RESET` 和 SPI 数据线。
+当前构建结果：ESP-IDF 5.1.2 已成功解析 `espressif/esp_lcd_ili9341`，工程已生成 `build/hello_world.bin`，并已完成实机纯色显示验证。下一步是接入 LVGL；若之后出现问题，先恢复纯色测试确认底层显示链路仍正常。
 
 在接入 LVGL 之前，先调用 `esp_lcd_panel_draw_bitmap()` 显示红、绿、蓝和白色矩形。
 
@@ -320,23 +322,111 @@ lcd_test_colors()
 
 若纯色都不能稳定显示，不要继续排查 LVGL。
 
-### 第 5 步：安装 LVGL 依赖
+### 第 5 步：加入 LVGL 依赖并停止纯色测试
 
-LVGL 需要作为 ESP-IDF component 加入工程。依赖可以来自组件管理器、项目内的 `components/lvgl`，或自行维护的 LVGL component。
+本项目不使用 ESP-IDF Component Manager 的 LVGL 包，而是将 LVGL 源码固定在仓库内的 `components/lvgl`，由 Git 记录版本。这样可以离线构建、审查源码，并且不会因为组件管理器自动升级而改变 API。
 
-安装后，在应用组件的 `CMakeLists.txt` 中声明依赖：
+当前工作区已下载 **LVGL 8.4.0**，它与本文使用的 `lv_disp_drv_t`、`lv_disp_draw_buf_t` 和 `lv_disp_flush_ready()` 等 LVGL 8 API 兼容，后续统一以此版本移植。不要将 LVGL 9 源码放入此目录；其显示驱动 API 不兼容本章代码。
+
+目前源码位于 `components/LVGL/lvgl-8.4.0/`，这还不是 ESP-IDF 可识别的组件目录：`components/LVGL/` 本身没有 `CMakeLists.txt`，而真正的组件文件又多嵌套了一层。请先在仓库根目录执行下面的整理命令，使 LVGL 根目录直接成为组件目录：
+
+```bash
+mv components/LVGL/lvgl-8.4.0 components/lvgl
+rmdir components/LVGL
+```
+
+整理后的关键结构必须是：
+
+```text
+components/
+└── lvgl/
+    ├── CMakeLists.txt
+    ├── lvgl.h
+    ├── lv_conf_template.h
+    └── src/
+```
+
+上面的“手动下载并整理”与 Git submodule 是二选一的方案。当前已有手动下载的 `v8.4.0`，应继续使用它，**不要**再执行下面的 submodule 命令。若以后在一个没有 `components/lvgl` 的全新仓库中希望由 Git 管理上游源码，可改用 Git submodule：
+
+```bash
+git submodule add --branch v8.4.0 https://github.com/lvgl/lvgl.git components/lvgl
+git submodule update --init --recursive
+```
+
+这会创建 `components/lvgl/` 和 `.gitmodules`。以后克隆本项目时，使用：
+
+```bash
+git clone --recurse-submodules <本项目仓库地址>
+```
+
+如果不希望使用 submodule，也可以保留当前手动下载的 `v8.4.0` 源码；只要整理后目录满足 `components/lvgl/lvgl.h`、`components/lvgl/src/`、`components/lvgl/CMakeLists.txt` 即可。无论采用哪种方式，**不要**把 LVGL 放在 `components/lvgl/lvgl/` 这一层额外目录中，否则 ESP-IDF 无法把它识别为名为 `lvgl` 的组件。
+
+LVGL 根目录自带面向 ESP-IDF 的 `CMakeLists.txt`，检测到 `ESP_PLATFORM` 后会注册自身源码；无需另写一个覆盖 LVGL 源码的 `CMakeLists.txt`。首次导入后，复制配置模板：
+
+```bash
+cp components/lvgl/lv_conf_template.h components/lvgl/lv_conf.h
+```
+
+编辑 `components/lvgl/lv_conf.h`，将文件顶部的：
+
+```c
+#if 0
+```
+
+改为：
+
+```c
+#if 1
+```
+
+对于当前 ILI9341 + SPI + 单缓冲的首个 demo，先确认以下配置：
+
+```c
+#define LV_COLOR_DEPTH 16
+#define LV_COLOR_16_SWAP 0
+#define LV_TICK_CUSTOM 0
+#define LV_USE_LOG 1
+#define LV_LOG_LEVEL LV_LOG_LEVEL_WARN
+#define LV_USE_PERF_MONITOR 1
+```
+
+`LV_COLOR_16_SWAP` 必须先保持 `0`，因为当前 `esp_lcd_panel_draw_bitmap()` 路径已经能正确显示 RGB565 纯色。只有接入 LVGL 后发现红蓝对调或 16 位像素字节序错误，才结合实际屏幕现象调整该值；不要在没有现象时同时修改 LCD 的 `RGB/BGR` 和 LVGL 的字节交换配置。
+
+随后在 `app/CMakeLists.txt` 的 `REQUIRES` 中加入本地组件名 `lvgl`、`esp_timer` 和 `LCD`。如果后续把 LVGL 适配层放进独立组件，则将这些依赖移到该组件，避免在多个组件中重复维护。
 
 ```cmake
 idf_component_register(
-    SRCS "main.c" "lcd_port.c" "touch_port.c" "ui.c"
+    SRCS "main.c" "lvgl_port.c" "ui_demo.c"
     INCLUDE_DIRS "."
-    REQUIRES esp_lcd esp_timer driver lvgl
+    REQUIRES LCD lvgl esp_timer
 )
 ```
 
-实际组件名称以所安装的 LVGL 版本为准。LVGL 8 常见 API 是 `lv_disp_drv_t`，LVGL 9 的显示注册 API 有变化；不要混用两套教程中的结构体和函数。
+`app/idf_component.yml` 不需要添加 `lvgl/lvgl` 依赖。修改本地源码或 CMake 后运行：
 
-### 第 6 步：创建 LVGL 绘图缓冲区
+```bash
+idf.py reconfigure
+idf.py build
+```
+
+然后将 `app/main.c` 中的：
+
+```c
+ESP_ERROR_CHECK(lcd_test_colors());
+```
+
+替换为后续的 `lvgl_port_init()`。纯色测试函数保留在 `components/LCD`，作为底层回归测试入口，但 LVGL UI 运行期间不调用它。
+
+导入后可先执行下面命令确认本地组件被识别，再开始编写适配层：
+
+```bash
+idf.py reconfigure
+idf.py build
+```
+
+构建日志中应出现 `components/lvgl` 的编译文件；若出现 `lvgl.h: No such file or directory`，优先检查目录是否多嵌套了一层，以及 `app/CMakeLists.txt` 是否包含 `REQUIRES lvgl`。
+
+### 第 6 步：创建 LVGL 绘图缓冲区（先使用单缓冲）
 
 对于 `240 × 320`、RGB565 的屏幕：
 
@@ -345,36 +435,37 @@ idf_component_register(
 20 行缓冲区 = 240 × 20 × 2 = 9600 字节
 ```
 
-ESP32-S3 可以先使用 10～20 行缓冲区。DMA 缓冲区必须位于 SPI DMA 可访问的内存区域：
+ESP32-S3 可以先使用 20 行缓冲区，即 `9600` 字节。DMA 缓冲区必须位于 SPI DMA 可访问的内存区域。当前阶段只分配 `buf1`，第二个缓冲区传 `NULL`：
 
 ```c
-lv_color_t *buf1 = heap_caps_malloc(
-    LCD_H_RES * 20 * sizeof(lv_color_t), MALLOC_CAP_DMA);
-lv_color_t *buf2 = heap_caps_malloc(
-    LCD_H_RES * 20 * sizeof(lv_color_t), MALLOC_CAP_DMA);
-assert(buf1 != NULL && buf2 != NULL);
+static lv_color_t *s_draw_buf_1;
+static lv_disp_draw_buf_t s_draw_buf;
+
+s_draw_buf_1 = heap_caps_malloc(LCD_H_RES * 20 * sizeof(lv_color_t),
+                                 MALLOC_CAP_DMA | MALLOC_CAP_INTERNAL);
+assert(s_draw_buf_1 != NULL);
+lv_disp_draw_buf_init(&s_draw_buf, s_draw_buf_1, NULL, LCD_H_RES * 20);
 ```
 
-双缓冲会消耗更多内存，但可以让 LVGL 绘制下一块区域时 SPI 同时发送另一块区域。第一次点亮 UI 时可以先使用单缓冲，稳定后再优化。
+单缓冲时，LVGL 在本次 `flush_cb` 被标记完成前不会复用这块缓冲区，因此 SPI 异步传输仍然安全。双缓冲会消耗更多内存，但可以让 LVGL 绘制下一块区域时 SPI 同时发送另一块区域；等 UI 稳定后再优化。
 
 ### 第 7 步：注册 LVGL 显示驱动
 
 以下是 LVGL 8 风格的核心关系：
 
 ```c
-static lv_disp_draw_buf_t draw_buf;
-static lv_disp_drv_t disp_drv;
+static lv_disp_drv_t s_disp_drv;
 
-lv_disp_draw_buf_init(&draw_buf, buf1, buf2, LCD_H_RES * 20);
-
-lv_disp_drv_init(&disp_drv);
-disp_drv.hor_res = 240;  // 竖屏；横屏时可改为 320
-disp_drv.ver_res = 320;  // 竖屏；横屏时可改为 240
-disp_drv.flush_cb = lcd_flush_cb;
-disp_drv.draw_buf = &draw_buf;
-disp_drv.user_data = panel_handle;
-lv_disp_t *display = lv_disp_drv_register(&disp_drv);
+lv_disp_drv_init(&s_disp_drv);
+s_disp_drv.hor_res = LCD_H_RES;
+s_disp_drv.ver_res = LCD_V_RES;
+s_disp_drv.flush_cb = lcd_flush_cb;
+s_disp_drv.draw_buf = &s_draw_buf;
+s_disp_drv.user_data = lcd_get_panel_handle();
+lv_disp_drv_register(&s_disp_drv);
 ```
+
+为避免应用层直接访问 `components/LCD/lcd.c` 的私有 `s_panel`，需要在 `lcd.h` 增加 `lcd_get_panel_handle()`，返回 `esp_lcd_panel_handle_t`；并在 `lcd.c` 中实现它。LCD 组件还应提供一个“设置颜色传输完成通知”的接口，供 LVGL 安装自己的完成回调。
 
 `flush_cb` 负责把 LVGL 指定区域送到 LCD：
 
@@ -394,12 +485,20 @@ static void lcd_flush_cb(
         area->y2 + 1,
         color_map);
 
-    // 同步发送完成后直接通知；异步 DMA 必须放在传输完成回调中。
-    lv_disp_flush_ready(drv);
+    // 本项目的 panel IO 使用 DMA 异步传输；这里不能立即调用
+    // lv_disp_flush_ready()，而是要在 SPI 颜色传输完成回调中通知 LVGL。
 }
 ```
 
 注意：`x2` 和 `y2` 是包含边界，`esp_lcd_panel_draw_bitmap()` 的结束坐标通常是不包含边界，所以需要传 `x2 + 1`、`y2 + 1`。
+
+当前 `lcd.c` 的颜色传输完成回调用于释放纯色测试的信号量。切换至 LVGL 时，将它改为保存当前 `lv_disp_drv_t *`，并在回调中调用：
+
+```c
+lv_disp_flush_ready(s_pending_disp_drv);
+```
+
+回调运行在 SPI ISR 上下文，不能在其中创建 UI 对象或调用其他复杂 LVGL API；只完成 flush 通知即可。单缓冲方案一次只允许一个尚未完成的 flush，因此在 `lcd_flush_cb()` 中记录的 `s_pending_disp_drv` 不会发生覆盖。
 
 ### 第 8 步：启动 LVGL 时间和任务
 
@@ -423,8 +522,15 @@ LVGL FreeRTOS task，每 5～10 ms
 不要在多个任务中同时调用 LVGL API。所有页面切换、控件创建、控件属性修改都应放在 LVGL 任务中，或通过队列/事件通知 LVGL 任务执行。
 
 ```c
+static void lvgl_tick_callback(void *arg)
+{
+    (void)arg;
+    lv_tick_inc(2);
+}
+
 static void lvgl_task(void *arg)
 {
+    (void)arg;
     while (true) {
         lv_timer_handler();
         vTaskDelay(pdMS_TO_TICKS(10));
@@ -432,25 +538,63 @@ static void lvgl_task(void *arg)
 }
 ```
 
-### 第 9 步：创建第一个 UI
+初始化顺序应固定为：
+
+```text
+lcd_init()
+  → lv_init()
+  → 分配单绘图缓冲区
+  → 注册 display driver
+  → 创建并启动 2 ms esp_timer（调用 lv_tick_inc）
+  → 创建 LVGL task（调用 lv_timer_handler）
+  → 在 LVGL task 上下文创建 UI demo
+```
+
+建议把 UI demo 的创建通过任务通知或队列交给 `lvgl_task()` 执行。初始化函数在创建任务前直接创建 demo 也可行，但运行期间任何其他任务都不能直接调用 `lv_label_set_text()`、`lv_obj_create()` 等 LVGL API。
+
+### 第 9 步：创建第一个 UI demo
 
 确认显示驱动已经注册后，再创建 UI：
 
 ```c
-static void ui_create(void)
+static void ui_button_event_cb(lv_event_t *event)
+{
+    static uint32_t click_count;
+    lv_obj_t *label = lv_event_get_user_data(event);
+
+    ++click_count;
+    lv_label_set_text_fmt(label, "Button clicked: %" PRIu32, click_count);
+}
+
+static void ui_demo_create(void)
 {
     lv_obj_t *screen = lv_scr_act();
 
-    lv_obj_set_style_bg_color(
-        screen, lv_color_hex(0x202020), 0);
+    lv_obj_set_style_bg_color(screen, lv_color_hex(0x202020), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, LV_PART_MAIN);
 
-    lv_obj_t *label = lv_label_create(screen);
-    lv_label_set_text(label, "ESP32-S3 + ILI9341");
-    lv_obj_center(label);
+    lv_obj_t *title = lv_label_create(screen);
+    lv_label_set_text(title, "ESP32-S3 + ILI9341");
+    lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 32);
+
+    lv_obj_t *result = lv_label_create(screen);
+    lv_label_set_text(result, "LVGL single-buffer ready");
+    lv_obj_align(result, LV_ALIGN_CENTER, 0, 24);
+
+    lv_obj_t *button = lv_btn_create(screen);
+    lv_obj_set_size(button, 150, 52);
+    lv_obj_align(button, LV_ALIGN_CENTER, 0, -32);
+    lv_obj_add_event_cb(button, ui_button_event_cb, LV_EVENT_CLICKED, result);
+
+    lv_obj_t *button_text = lv_label_create(button);
+    lv_label_set_text(button_text, "UI demo");
+    lv_obj_center(button_text);
 }
 ```
 
-如果这段运行后屏幕显示文字，说明以下链路已经打通：
+触摸尚未接入时，屏幕应至少显示深色背景、标题、状态文本和 `UI demo` 按钮；按钮不会响应点击是正常现象。接入 HR2046 并注册输入设备后，点击按钮会更新计数文本，从而同时验证显示刷新、LVGL 任务和触摸事件。
+
+如果这段运行后屏幕稳定显示文字，说明以下链路已经打通：
 
 ```text
 LVGL 对象 → LVGL 绘制 → flush_cb → esp_lcd → SPI → ILI9341
