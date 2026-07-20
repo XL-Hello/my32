@@ -27,6 +27,8 @@ static TaskHandle_t s_color_test_task;
 static TaskHandle_t s_version_test_task;
 static lcd_color_trans_done_cb_t s_color_trans_done_callback;
 static void *s_color_trans_done_user_ctx;
+static int s_h_res = LCD_H_RES;
+static int s_v_res = LCD_V_RES;
 
 static bool lcd_color_trans_done_callback(esp_lcd_panel_io_handle_t panel_io,
                                           esp_lcd_panel_io_event_data_t *event_data,
@@ -75,7 +77,7 @@ esp_err_t lcd_init(void)
         .miso_io_num = LCD_PIN_MISO,
         .quadwp_io_num = -1,
         .quadhd_io_num = -1,
-        .max_transfer_sz = LCD_H_RES * LCD_TEST_LINES * sizeof(uint16_t),
+        .max_transfer_sz = LCD_V_RES * LCD_TEST_LINES * sizeof(uint16_t),
     };
     esp_err_t err = spi_bus_initialize(LCD_HOST, &bus_config, SPI_DMA_CH_AUTO);
     if (err != ESP_OK) {
@@ -127,7 +129,7 @@ esp_err_t lcd_init(void)
         err = esp_lcd_panel_init(s_panel);
     }
     if (err == ESP_OK) {
-        err = esp_lcd_panel_mirror(s_panel, false, true);
+        err = lcd_set_orientation(LCD_ORIENTATION_PORTRAIT);
     }
     if (err == ESP_OK) {
         err = esp_lcd_panel_disp_on_off(s_panel, true);
@@ -141,6 +143,65 @@ esp_err_t lcd_init(void)
     log_info("ILI9341 initialized: SPI=%d SCLK=%d MOSI=%d MISO=%d CS=%d DC=%d RST=%d",
              LCD_HOST, LCD_PIN_SCLK, LCD_PIN_MOSI, LCD_PIN_MISO,
              LCD_PIN_CS, LCD_PIN_DC, LCD_PIN_RST);
+    return ESP_OK;
+}
+
+esp_err_t lcd_set_orientation(lcd_orientation_t orientation)
+{
+    if (s_panel == NULL) {
+        return ESP_ERR_INVALID_STATE;
+    }
+
+    bool swap_xy;
+    bool mirror_x;
+    bool mirror_y;
+    int h_res;
+    int v_res;
+
+    switch (orientation) {
+    case LCD_ORIENTATION_PORTRAIT:
+        swap_xy = false;
+        mirror_x = false;
+        mirror_y = true;
+        h_res = LCD_H_RES;
+        v_res = LCD_V_RES;
+        break;
+    case LCD_ORIENTATION_LANDSCAPE:
+        swap_xy = true;
+        mirror_x = true;
+        mirror_y = false;
+        h_res = LCD_V_RES;
+        v_res = LCD_H_RES;
+        break;
+    case LCD_ORIENTATION_PORTRAIT_INVERTED:
+        swap_xy = false;
+        mirror_x = true;
+        mirror_y = false;
+        h_res = LCD_H_RES;
+        v_res = LCD_V_RES;
+        break;
+    case LCD_ORIENTATION_LANDSCAPE_INVERTED:
+        swap_xy = true;
+        mirror_x = false;
+        mirror_y = true;
+        h_res = LCD_V_RES;
+        v_res = LCD_H_RES;
+        break;
+    default:
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    esp_err_t err = esp_lcd_panel_swap_xy(s_panel, swap_xy);
+    if (err != ESP_OK) {
+        return err;
+    }
+    err = esp_lcd_panel_mirror(s_panel, mirror_x, mirror_y);
+    if (err != ESP_OK) {
+        return err;
+    }
+
+    s_h_res = h_res;
+    s_v_res = v_res;
     return ESP_OK;
 }
 
@@ -242,7 +303,7 @@ esp_err_t lcd_fill(uint8_t red, uint8_t green, uint8_t blue)
         return ESP_ERR_INVALID_STATE;
     }
 
-    const size_t pixel_count = LCD_H_RES * LCD_TEST_LINES;
+    const size_t pixel_count = s_h_res * LCD_TEST_LINES;
     uint8_t *buffer = heap_caps_malloc(pixel_count * sizeof(uint16_t), MALLOC_CAP_DMA);
     if (buffer == NULL) {
         log_error("LCD color buffer allocation failed");
@@ -251,8 +312,8 @@ esp_err_t lcd_fill(uint8_t red, uint8_t green, uint8_t blue)
 
     lcd_fill_buffer(buffer, pixel_count, lcd_rgb565(red, green, blue));
     esp_err_t err = ESP_OK;
-    for (int y = 0; y < LCD_V_RES; y += LCD_TEST_LINES) {
-        err = esp_lcd_panel_draw_bitmap(s_panel, 0, y, LCD_H_RES,
+    for (int y = 0; y < s_v_res; y += LCD_TEST_LINES) {
+        err = esp_lcd_panel_draw_bitmap(s_panel, 0, y, s_h_res,
                                         y + LCD_TEST_LINES, buffer);
         if (err != ESP_OK) {
             break;

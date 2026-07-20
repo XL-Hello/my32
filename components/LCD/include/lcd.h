@@ -16,6 +16,19 @@
 #define LCD_PIN_RST 8
 
 /**
+ * @brief LCD 显示方向。
+ *
+ * 方向以当前硬件安装方向为基准：LCD_ORIENTATION_PORTRAIT 保持组件原有的
+ * 240x320 显示方向，横屏方向的逻辑分辨率为 320x240。
+ */
+typedef enum {
+    LCD_ORIENTATION_PORTRAIT = 0,
+    LCD_ORIENTATION_LANDSCAPE,
+    LCD_ORIENTATION_PORTRAIT_INVERTED,
+    LCD_ORIENTATION_LANDSCAPE_INVERTED,
+} lcd_orientation_t;
+
+/**
  * @brief LCD 颜色 DMA 传输完成回调。
  *
  * 回调运行在 SPI ISR 上下文，只能执行不会阻塞的操作。
@@ -27,6 +40,18 @@ typedef bool (*lcd_color_trans_done_cb_t)(void *user_ctx);
  * @brief 初始化 SPI 总线和 ILI9341 LCD。
  */
 esp_err_t lcd_init(void);
+
+/**
+ * @brief 设置 LCD 显示方向。
+ *
+ * @note 必须在 lcd_init() 成功后调用。调用方应在切换方向后按新的逻辑分辨率
+ *       更新上层 GUI 的显示尺寸，并在没有正在进行的像素传输时调用此函数。
+ *
+ * @param orientation 要设置的显示方向。
+ * @return ESP_OK 表示设置成功；ESP_ERR_INVALID_ARG 表示方向参数无效；
+ *         ESP_ERR_INVALID_STATE 表示 LCD 尚未初始化。
+ */
+esp_err_t lcd_set_orientation(lcd_orientation_t orientation);
 
 /**
  * @brief 将一块 RGB565 像素数据提交到 LCD。

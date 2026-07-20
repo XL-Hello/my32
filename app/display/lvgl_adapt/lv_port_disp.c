@@ -133,6 +133,7 @@ static void disp_init(void)
     /* 在此实现显示硬件初始化。 */
     ESP_ERROR_CHECK(lcd_init());
     ESP_ERROR_CHECK(lcd_set_color_trans_done_callback(lcd_flush_ready_callback, NULL));
+    ESP_ERROR_CHECK(lcd_set_orientation(LCD_ORIENTATION_PORTRAIT_INVERTED));
 }
 
 volatile bool disp_flush_enabled = true;
