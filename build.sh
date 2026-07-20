@@ -10,9 +10,21 @@ IDF_CHANGED=0
 show_usage()
 {
     printf '%s\n' "用法:"
-    printf '%s\n' "  source ./build.sh env          切换当前终端到项目内 esp-idf"
-    printf '%s\n' "  ./build.sh build               使用当前 IDF_PATH 编译；未设置时使用全局 SDK"
-    printf '%s\n' "  ./build.sh flash /dev/ttyACM0  使用当前 IDF_PATH 烧录"
+    printf '%s\n' "  source ./build.sh env          切换当前终端到项目内 esp-idf（缺失时使用全局 SDK）"
+    printf '%s\n' "  ./build.sh build               优先使用项目内 esp-idf 编译"
+    printf '%s\n' "  ./build.sh flash /dev/ttyACM0  优先使用项目内 esp-idf 烧录"
+}
+
+select_idf_path()
+{
+    if [[ -f "${LOCAL_IDF_PATH}/export.sh" ]]; then
+        printf '%s\n' "${LOCAL_IDF_PATH}"
+    elif [[ -f "${GLOBAL_IDF_PATH}/export.sh" ]]; then
+        printf '%s\n' "${GLOBAL_IDF_PATH}"
+    else
+        printf '错误: 未找到项目内或全局 ESP-IDF。\n' >&2
+        return 1
+    fi
 }
 
 activate_idf()
@@ -36,13 +48,22 @@ show_active_idf()
 
 prepare_build_directory()
 {
-    local cache_file="${PROJECT_ROOT}/build/bootloader/CMakeCache.txt"
+    local bootloader_command_file="${PROJECT_ROOT}/build/bootloader-prefix/tmp/bootloader-cfgcmd.txt"
+    local config_env_file="${PROJECT_ROOT}/build/config.env"
+    local bootloader_cache_file="${PROJECT_ROOT}/build/bootloader/CMakeCache.txt"
     local cached_idf_path
 
     IDF_CHANGED=0
-    [[ -f "${cache_file}" ]] || return 0
+    if [[ -f "${bootloader_command_file}" ]]; then
+        cached_idf_path="$(rg -o -m 1 -- '-DIDF_PATH=[^;]+' "${bootloader_command_file}" 2>/dev/null | cut -d= -f2-)"
+    elif [[ -f "${config_env_file}" ]]; then
+        cached_idf_path="$(rg -o -m 1 '"IDF_PATH": "[^"]+"' "${config_env_file}" 2>/dev/null | cut -d'"' -f4)"
+    elif [[ -f "${bootloader_cache_file}" ]]; then
+        cached_idf_path="$(rg -m 1 '^IDF_PATH:.*=' "${bootloader_cache_file}" 2>/dev/null | cut -d= -f2-)"
+    else
+        return 0
+    fi
 
-    cached_idf_path="$(rg -m 1 '^IDF_PATH:.*=' "${cache_file}" 2>/dev/null | cut -d= -f2-)"
     if [[ -n "${cached_idf_path}" && "${cached_idf_path}" != "${IDF_PATH}" ]]; then
         printf '检测到 ESP-IDF 已从 %s 切换到 %s，清理旧构建缓存。\n' \
                "${cached_idf_path}" "${IDF_PATH}"
@@ -58,14 +79,15 @@ main()
 
     case "${command}" in
         env)
-            activate_idf "${LOCAL_IDF_PATH}" || return 1
+            selected_idf_path="$(select_idf_path)" || return 1
+            activate_idf "${selected_idf_path}" || return 1
             show_active_idf
             if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
                 printf '%s\n' "提示: 直接运行脚本不会修改当前终端；请使用 source ./build.sh env。"
             fi
             ;;
         build)
-            selected_idf_path="${IDF_PATH:-${GLOBAL_IDF_PATH}}"
+            selected_idf_path="$(select_idf_path)" || return 1
             activate_idf "${selected_idf_path}" || return 1
             show_active_idf
             prepare_build_directory || return 1
@@ -76,7 +98,7 @@ main()
                 printf '%s\n' "错误: flash 需要指定串口，例如 ./build.sh flash /dev/ttyACM0" >&2
                 return 1
             fi
-            selected_idf_path="${IDF_PATH:-${GLOBAL_IDF_PATH}}"
+            selected_idf_path="$(select_idf_path)" || return 1
             activate_idf "${selected_idf_path}" || return 1
             show_active_idf
             prepare_build_directory || return 1
