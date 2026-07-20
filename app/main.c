@@ -11,6 +11,7 @@
 #include "freertos/task.h"
 #include "esp_chip_info.h"
 #include "esp_flash.h"
+#include "aht20.h"
 #include "lcd.h"
 #include "rgb_led.h"
 #include "ws2812b.h"
@@ -35,7 +36,7 @@ void my_main()
 
     // RGB LED
     ESP_ERROR_CHECK(rgb_led_init());
-    ESP_ERROR_CHECK(rgb_led_start_chase(2000));
+    //ESP_ERROR_CHECK(rgb_led_start_chase(2000));
     log_info("RGB LED power-on self-test is running");
 
     // ws2812b
@@ -44,11 +45,27 @@ void my_main()
     ws2812b_refresh();
     log_info("ws2812b initialized");
 
-
-
+    esp_err_t aht20_err = ESP_ERR_INVALID_STATE;
     while (true) {
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        //log_info("is running\n");
+        if (aht20_err != ESP_OK) {
+            aht20_err = aht20_init();
+            if (aht20_err != ESP_OK) {
+                log_warn("AHT20 initialization failed: %s", esp_err_to_name(aht20_err));
+            }
+        }
+        if (aht20_err == ESP_OK) {
+            float temperature_c;
+            float humidity_rh;
+            const esp_err_t aht20_read_err = aht20_read(&temperature_c, &humidity_rh);
+            if (aht20_read_err == ESP_OK) {
+                log_info("AHT20: temperature=%.2f C, humidity=%.2f %%RH",
+                         (double)temperature_c, (double)humidity_rh);
+            } else {
+                log_warn("AHT20 read failed: %s", esp_err_to_name(aht20_read_err));
+                aht20_err = aht20_read_err;
+            }
+        }
+        vTaskDelay(pdMS_TO_TICKS(2000));
     }
 }
 
