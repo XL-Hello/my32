@@ -6,7 +6,7 @@
 #pragma once
 
 /**
- * @brief 创建居中的大号 Hello world 文本。
+ * @brief 创建五点触摸坐标校准界面。
  *
  * 必须在 LVGL 任务上下文中调用。
  */

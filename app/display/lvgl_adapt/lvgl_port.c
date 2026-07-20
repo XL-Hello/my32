@@ -12,10 +12,12 @@
 #include "lv_port_disp.h"
 #include "lvgl_hello_world.h"
 #include "lvgl/lvgl.h"
+#include "touch.h"
 
 #define LVGL_TICK_PERIOD_US 2000
 #define LVGL_TASK_STACK_SIZE 4096
 #define LVGL_TASK_PRIORITY 5
+#define TOUCH_RAW_TEST_ENABLED 0
 
 static esp_timer_handle_t s_lvgl_tick_timer;
 
@@ -43,6 +45,9 @@ void lvgl_port_init(void)
 
     lv_init();
     lv_port_disp_init();
+#if TOUCH_RAW_TEST_ENABLED
+    ESP_ERROR_CHECK(touch_init());
+#endif
 
     const esp_timer_create_args_t tick_timer_args = {
         .callback = lvgl_tick_callback,
