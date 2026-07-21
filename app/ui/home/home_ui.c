@@ -14,7 +14,7 @@
 #define HOME_UI_FPS_REFRESH_PERIOD_MS 250
 #define HOME_UI_PERSON_WIDTH 30
 #define HOME_UI_PERSON_HEIGHT 60
-#define HOME_UI_PERSON_ANIMATION_PERIOD_MS 500
+#define HOME_UI_PERSON_ANIMATION_PERIOD_MS 50
 
 static lv_obj_t *s_time_label;
 static lv_obj_t *s_temperature_label;

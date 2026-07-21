@@ -12,7 +12,7 @@
 #include "platform_log.h"
 
 #define TOUCH_HOST SPI2_HOST
-#define TOUCH_SPI_CLOCK_HZ (1 * 1000 * 1000)
+#define TOUCH_SPI_CLOCK_HZ (2 * 1000 * 1000)
 #define TOUCH_POLL_PERIOD_MS 20
 #define TOUCH_MOVE_LOG_PERIOD_MS 100
 #define TOUCH_AXIS_SAMPLE_COUNT 5
@@ -257,14 +257,13 @@ esp_err_t touch_init(void)
     }
 
     /*
-     * 0xD0/0x90 的 PD 位为 00，会将 HR2046 置入允许 PENIRQ 的掉电模式。
-     * 上电后先发送一次命令，避免因尚未执行过转换而错过首次 T_IRQ。
+     * 上电后 PENIRQ 状态没有可依赖的保证，不能仅凭 GPIO 高电平认定未触摸。
+     * 0xD0 的 PD1/PD0 均为 0；完成这一次 24 时钟转换后，HR2046 会进入
+     * 自动掉电且允许 PENIRQ 的确定状态（未触摸为高，触摸为低）。返回的
+     * 坐标值不用于初始化。
      */
     uint16_t discarded_sample;
     err = touch_read_axis(TOUCH_CMD_READ_X, &discarded_sample);
-    if (err == ESP_OK) {
-        err = touch_read_axis(TOUCH_CMD_READ_Y, &discarded_sample);
-    }
     if (err != ESP_OK) {
         spi_bus_remove_device(s_touch_device);
         s_touch_device = NULL;

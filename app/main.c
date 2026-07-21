@@ -26,7 +26,7 @@
 
 void my_main()
 {
-    vTaskDelay(pdMS_TO_TICKS(3000));
+    // vTaskDelay(pdMS_TO_TICKS(3000));
 
     // ILI9341 LCD
     // ESP_ERROR_CHECK(lcd_init());

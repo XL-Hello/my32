@@ -16,7 +16,7 @@
 #include "platform_log.h"
 
 #define LCD_HOST SPI2_HOST
-#define LCD_PIXEL_CLOCK_HZ (1 * 1000 * 1000)
+#define LCD_PIXEL_CLOCK_HZ (2 * 1000 * 1000)
 #define LCD_TEST_LINES 80
 #define LCD_VERSION_TEST_PERIOD_MS 2000
 

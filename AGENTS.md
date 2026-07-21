@@ -15,11 +15,15 @@
 
 ## 构建、测试与开发命令
 
-请在已启用 ESP-IDF 环境的终端中运行以下命令（已设置 `IDF_PATH` 并导出 IDF 环境）：
+本项目必须使用仓库内的 `esp-idf/`，不得使用 `/home/xl/.espressif/...` 下的全局 ESP-IDF。AI 执行构建、烧录、清理或测试前，必须通过项目脚本启用本地 SDK；推荐直接运行 `./build.sh build`。若需要直接运行 `idf.py`，必须先执行 `source ./build.sh env`，并确认 `IDF_PATH` 为 `${PWD}/esp-idf`。切换 SDK 后由 `build.sh` 负责清理旧构建缓存，禁止直接加载全局 SDK 的 `export.sh`。
+
+使用项目内 ESP-IDF 的命令如下：
 
 ```bash
+./build.sh build           # 使用项目内 esp-idf/ 配置并编译到 build/ 目录
+source ./build.sh env       # 为当前终端启用项目内 ESP-IDF，之后才可直接调用 idf.py
 idf.py set-target esp32s3   # 选择目标芯片，可替换为其他受支持的目标
-idf.py build               # 配置 CMake，并将固件编译到 build/ 目录
+idf.py build               # 已执行 source ./build.sh env 后可用
 idf.py -p /dev/ttyUSB0 flash monitor  # 烧录固件并打开串口监视器
 idf.py fullclean            # 删除生成的构建状态
 pytest -v pytest_hello_world.py --target esp32s3  # 运行 pytest-embedded 测试
