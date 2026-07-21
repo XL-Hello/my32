@@ -11,7 +11,7 @@
 | 项目 | 现状 | 对实施的影响 |
 | --- | --- | --- |
 | LCD | `components/LCD/lcd.c` 使用 ILI9341 和 `SPI2_HOST` | 触摸应作为同一 SPI 总线上的第二个设备，不能再次初始化该总线。 |
-| LCD SPI 引脚 | SCLK=GPIO12、MOSI=GPIO11、MISO=GPIO13、LCD_CS=GPIO7、DC=GPIO9、RST=GPIO8 | 触摸的 `T_CLK/T_IN/T_DO` 应分别复用 GPIO12/11/13；`T_CS` 固定使用 GPIO36。 |
+| LCD SPI 引脚 | SCLK=GPIO6、MOSI=GPIO7、MISO=GPIO5、LCD_CS=GPIO17、DC=GPIO15、RST=GPIO16 | 触摸的 `T_CLK/T_IN/T_DO` 应分别复用 GPIO6/7/5；`T_CS` 固定使用 GPIO8。 |
 | 显示尺寸 | `LCD_H_RES=240`、`LCD_V_RES=320` | LVGL 的逻辑输入坐标范围必须为 `x=0..239`、`y=0..319`。 |
 | 当前显示方向 | `lv_port_disp.c` 在 LCD 初始化后设为 `LCD_ORIENTATION_PORTRAIT_INVERTED`；其实现为 `swap_xy=false`、`mirror_x=true`、`mirror_y=false` | 这是触摸方向校准的唯一显示基准。不能按普通竖屏或资料中的横屏公式直接映射。 |
 | LVGL | 工程使用 LVGL 8 风格的 `lv_disp_drv_t`；输入读取周期为 30 ms | 应使用 `lv_indev_drv_t`、`LV_INDEV_TYPE_POINTER` 和 `lv_indev_drv_register()`；一次读点应足够快，不能阻塞 30 ms。 |
@@ -55,27 +55,29 @@ UI 层不得理解 `0xD0`、SPI 事务或 raw ADC 值；驱动层不得决定“
 
 **当前状态：接线已完成，进入实施测试。** 已确认 LCD 与触摸所需线路已接好；以下 GPIO 分配作为当前测试配置。下一项工作是创建 `components/LCD/touch.c`，完成初始化后只验证原始坐标和按下状态，暂不接入 LVGL 或 UI 手势。
 
-本项目将 `T_CS` 指定为 **GPIO36**，将 `T_IRQ` 指定为 **GPIO35**。当前代码、构建配置和板卡原理图整理均未发现 GPIO36/GPIO35 的其他占用；两者分别引出到 J2-12、J2-13，且不属于启动管脚、下载串口、原生 USB 或板载 RGB LED 引脚。接线为 `LCD 模块 T_CS → ESP32-S3 GPIO36`、`LCD 模块 T_IRQ → ESP32-S3 GPIO35`。接线后必须先完成本节的 raw 读点验证；校准范围仍须实测确认。
+本项目将 `T_CS` 指定为 **GPIO8**，将 `T_IRQ` 指定为 **GPIO18**。当前代码、构建配置和板卡原理图整理均未发现 GPIO8/GPIO18 的其他占用；两者分别引出到 J1-12、J1-11，且不属于启动管脚、下载串口、原生 USB 或板载 RGB LED 引脚。接线为 `LCD 模块 T_CS → ESP32-S3 GPIO8`、`LCD 模块 T_IRQ → ESP32-S3 GPIO18`。接线后必须先完成本节的 raw 读点验证；校准范围仍须实测确认。
 
 | 信号 | 当前可确定的连接 | 仍需确认 |
 | --- | --- | --- |
-| `T_CLK` | GPIO12（与 LCD SCLK 共用） | 触摸控制器实测 SPI mode 与允许时钟频率。 |
-| `T_IN` | GPIO11（与 LCD MOSI 共用） | 模块丝印是否为 `T_IN` 或 `T_DIN`。 |
-| `T_DO` | GPIO13（与 LCD MISO 共用） | 未选中时是否释放 MISO。 |
-| `T_CS` | **GPIO36**，低有效，由 SPI 设备自动片选 | 将模块 `T_CS` 接至 GPIO36；上电时必须保持高电平（未选中）。 |
-| `T_IRQ` | **GPIO35**，输入中断，通常低有效 | 将模块 `T_IRQ` 接至 GPIO35；确认低有效电平、上拉需求和释放后的高电平。 |
+| `T_CLK` | GPIO6（与 LCD SCLK 共用） | 触摸控制器实测 SPI mode 与允许时钟频率。 |
+| `T_IN` | GPIO7（与 LCD MOSI 共用） | 模块丝印是否为 `T_IN` 或 `T_DIN`。 |
+| `T_DO` | GPIO5（与 LCD MISO 共用） | 未选中时是否释放 MISO。 |
+| `T_CS` | **GPIO8**，低有效，由 SPI 设备自动片选 | 将模块 `T_CS` 接至 GPIO8；上电时必须保持高电平（未选中）。 |
+| `T_IRQ` | **GPIO18**，输入中断，通常低有效 | 将模块 `T_IRQ` 接至 GPIO18；确认低有效电平、上拉需求和释放后的高电平。 |
 | `SD_CS` | 尚未接入 | 若 SD 卡已连线，必须在触摸读取时保持无效。 |
+
+注意：`rgb_led` 的 R/Y/G PWM 引脚分别为 GPIO20/GPIO21/GPIO47，与 LCD SPI 使用的 GPIO5/GPIO6/GPIO7 不冲突；WS2812B 保持 RMT 后端并使用 GPIO48。
 
 实施要求：
 
 1. 保持 LCD 先执行 `lcd_init()`；它已调用 `spi_bus_initialize(SPI2_HOST, ...)`。
-2. 在 `components/LCD/touch.c` 的 `touch_init()` 中，只对既有 `SPI2_HOST` 调用 `spi_bus_add_device()` 创建独立的触摸 device handle，配置 `spics_io_num=GPIO36`；不得第二次调用 `spi_bus_initialize()`。
+2. 在 `components/LCD/touch.c` 的 `touch_init()` 中，只对既有 `SPI2_HOST` 调用 `spi_bus_add_device()` 创建独立的触摸 device handle，配置 `spics_io_num=GPIO8`；不得第二次调用 `spi_bus_initialize()`。
 3. 触摸读取期间由 SPI 设备句柄完成片选，禁止手工同时选中 LCD、触摸或 SD 卡。若 `T_CS` 不使用 SPI 驱动自动片选，必须在每次事务前后严格控制电平。
 4. 首次将触摸 SPI 时钟设为保守值（例如 1 MHz），验证后再逐步提高；不要沿用 LCD 的 40 MHz。
 5. 触摸与显示可以共享总线，但没有共享同一设备句柄。LCD DMA 和触摸事务均应交给 ESP-IDF SPI 主机仲裁；不得绕过驱动直接操作 SPI 寄存器。
-6. `T_IRQ` 使用 GPIO35。将其配置为输入和下降沿中断（须由实物确认低有效），并按模块电气要求配置内部或外部上拉；ISR 仅置位标志或通知读取任务。ISR 中不得发 SPI 事务、不得调用 `lv_indev_*` 或其他 LVGL API。第一版也可以保留 GPIO35 接线但按 30 ms 轮询。
+6. `T_IRQ` 使用 GPIO18。将其配置为输入和下降沿中断（须由实物确认低有效），并按模块电气要求配置内部或外部上拉；ISR 仅置位标志或通知读取任务。ISR 中不得发 SPI 事务、不得调用 `lv_indev_*` 或其他 LVGL API。第一版也可以保留 GPIO18 接线但按 30 ms 轮询。
 
-验收：上电后 LCD 正常显示，未按下时所有片选均无冲突；触摸驱动初始化日志包含 SPI host、`T_CS=GPIO36`、`T_IRQ=GPIO35`、SPI mode 和频率。
+验收：上电后 LCD 正常显示，未按下时所有片选均无冲突；触摸驱动初始化日志包含 SPI host、`T_CS=GPIO8`、`T_IRQ=GPIO18`、SPI mode 和频率。
 
 ## 4. 第二步：先验证原始读点，不做 UI 映射
 
@@ -229,7 +231,7 @@ abs_dy = abs(dy)
 
 按以下顺序实施，任一步未通过都不要进入下一步：
 
-1. **确认接线和 GPIO。** 模块 `T_CS` 改接至 GPIO36、`T_IRQ` 保持 GPIO35；保持 WS2812B 为 RMT 后端。
+1. **确认接线和 GPIO。** 模块 `T_CS` 接至 GPIO8、`T_IRQ` 接至 GPIO18；保持 WS2812B 为 RMT 后端。
 2. **创建 LCD 组件内的 HR2046 驱动。** 当前进行：新增 `components/LCD/touch.c` 和 `components/LCD/include/touch.h`，并在既有 SPI2 总线上添加触摸设备，支持可配置 SPI mode、频率和命令。
 3. **验证 raw 数据。** 打印按下/移动/释放的滤波前后坐标，解决通信和按下判定问题。
 4. **制作临时校准页。** 显示五点、记录 raw 样本，确定轴交换与镜像，得到有效区域和映射参数。

@@ -81,7 +81,7 @@ LVGL 输入设备 read_cb
 | LVGL 依赖 | 尚未加入当前应用 |
 | LVGL 显示适配层 | 尚未加入 |
 | LVGL 触摸适配层 | 尚未加入 |
-| LCD GPIO 分配 | 已确定，`CS` 使用 GPIO7 |
+| LCD GPIO 分配 | 已确定，`CS` 使用 GPIO17 |
 | 可显示 UI 的示例代码 | 尚未加入 |
 
 所以，“从 LCD 到 LVGL”不是只添加一个 `lv_label_create()`，而是要完成一条硬件和软件链路。
@@ -99,7 +99,7 @@ LCD LED → 3.3V
 
 背光验证只说明电源和背光回路正常；现在的纯色实测则进一步证明 `SCK`、`MOSI`、`CS`、`DC`、`RESET`、ILI9341 初始化和 RGB565 像素发送链路可以工作。
 
-软件和实机调试进度：`components/LCD` 已实现 SPI2、ILI9341 初始化、RGB565 分块填充及红、绿、蓝、白、黑五色循环；`app/main.c` 调用 `lcd_init()` 与 `lcd_test_colors()` 后，屏幕已经能显示不同纯色。实际 `CS` 已从此前记录的 GPIO10 改为 **GPIO7**，对应 `components/LCD/include/lcd.h` 中的 `LCD_PIN_CS`。
+软件和实机调试进度：`components/LCD` 已实现 SPI2、ILI9341 初始化、RGB565 分块填充及红、绿、蓝、白、黑五色循环；`app/main.c` 调用 `lcd_init()` 与 `lcd_test_colors()` 后，屏幕已经能显示不同纯色。当前 `CS` 使用 **GPIO17**，对应 `components/LCD/include/lcd.h` 中的 `LCD_PIN_CS`。
 
 下一阶段不再继续增加纯色图案，而是依次完成：创建 LVGL 单绘图缓冲区、注册显示驱动、启动 LVGL tick 与任务、创建第一个 UI demo。开始前应停止 `lcd_test_colors()`：它与 LVGL 都会向同一个 ILI9341 panel 发起绘制，不能同时运行。
 
@@ -180,18 +180,17 @@ lv_timer_handler();
 
 ```c
 #define LCD_HOST        SPI2_HOST
-#define LCD_PIN_SCLK    GPIO_NUM_xx
-#define LCD_PIN_MOSI    GPIO_NUM_xx
-#define LCD_PIN_MISO    GPIO_NUM_xx
-#define LCD_PIN_CS      GPIO_NUM_xx
-#define LCD_PIN_DC      GPIO_NUM_xx
-#define LCD_PIN_RST     GPIO_NUM_xx
-#define LCD_PIN_BL      GPIO_NUM_xx
-#define TOUCH_PIN_CS    GPIO_NUM_xx
-#define TOUCH_PIN_IRQ   GPIO_NUM_xx
+#define LCD_PIN_SCLK    GPIO_NUM_6
+#define LCD_PIN_MOSI    GPIO_NUM_7
+#define LCD_PIN_MISO    GPIO_NUM_5
+#define LCD_PIN_CS      GPIO_NUM_17
+#define LCD_PIN_DC      GPIO_NUM_15
+#define LCD_PIN_RST     GPIO_NUM_16
+#define TOUCH_PIN_CS    GPIO_NUM_8
+#define TOUCH_PIN_IRQ   GPIO_NUM_18
 ```
 
-这里的 `GPIO_NUM_xx` 必须替换成真实 GPIO。当前仓库没有为 LCD 指定固定引脚，不能直接照抄其他示例。
+以上宏与当前 `components/LCD/include/lcd.h`、`components/LCD/include/touch.h` 保持一致。
 
 硬件上要确认：
 
@@ -216,13 +215,15 @@ lv_timer_handler();
 | --- | --- |
 | `VCC` | `3.3V` |
 | `GND` | `GND` |
-| `SCK` | `GPIO12` |
-| `SDI/MOSI` | `GPIO11` |
-| `SDO/MISO` | `GPIO13` |
-| `CS` | `GPIO7` |
-| `DC` | `GPIO9` |
-| `RESET` | `GPIO8` |
+| `SCK` | `GPIO6` |
+| `SDI/MOSI` | `GPIO7` |
+| `SDO/MISO` | `GPIO5` |
+| `CS` | `GPIO17` |
+| `DC` | `GPIO15` |
+| `RESET` | `GPIO16` |
 | `LED` | `3.3V` |
+
+`rgb_led` 组件的 R/Y/G PWM 引脚已配置为 GPIO20/GPIO21/GPIO47，与 LCD SPI 引脚不冲突；WS2812B 保持 RMT 后端并使用 GPIO48。
 
 本阶段的目标是：不接入 LVGL，先用 `components/LCD` 初始化 SPI 和 ILI9341，并依次显示红、绿、蓝、白、黑五种纯色。实现代码位于 `components/LCD`，应用启动时由 `app/main.c` 调用 `lcd_init()` 和 `lcd_test_colors()`。
 

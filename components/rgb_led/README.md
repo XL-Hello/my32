@@ -33,9 +33,9 @@ components/rgb_led/
 
 | 通道 | GPIO | LEDC 通道 | 默认用途 |
 | --- | ---: | --- | --- |
-| R | GPIO4 | `LEDC_CHANNEL_0` | 红色 |
-| Y | GPIO5 | `LEDC_CHANNEL_1` | 黄色 |
-| G | GPIO6 | `LEDC_CHANNEL_2` | 绿色 |
+| R | GPIO20 | `LEDC_CHANNEL_0` | 红色 |
+| Y | GPIO21 | `LEDC_CHANNEL_1` | 黄色 |
+| G | GPIO47 | `LEDC_CHANNEL_2` | 绿色 |
 
 模块使用 `LEDC_LOW_SPEED_MODE`、`LEDC_TIMER_0`、`5 kHz` PWM 和 8 bit 分辨率。`RGB_LED_ACTIVE_LOW` 当前为 `false`，即高电平有效，适用于公共端接地的共阴极 LED。
 
@@ -134,6 +134,6 @@ void app_main(void)
 若 LED 不亮或颜色异常，按以下顺序检查：
 
 1. 确认 LED 公共端类型与 `RGB_LED_ACTIVE_LOW` 配置匹配。
-2. 检查 R/Y/G 三个引脚是否依次连接 GPIO4/GPIO5/GPIO6，且每路都有独立限流电阻。
+2. 检查 R/Y/G 三个引脚是否依次连接 GPIO20/GPIO21/GPIO47，且每路都有独立限流电阻。
 3. 查看串口中是否出现 `LEDC PWM initialized` 和 `RGB LED initialized`。
 4. 使用 `rgb_led_set_color()` 分别验证三个单色通道，再验证流水灯。

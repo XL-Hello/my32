@@ -24,7 +24,7 @@
 
 void my_main()
 {
-    //vTaskDelay(pdMS_TO_TICKS(3000));
+    vTaskDelay(pdMS_TO_TICKS(3000));
 
     // ILI9341 LCD
     // ESP_ERROR_CHECK(lcd_init());
@@ -34,10 +34,9 @@ void my_main()
     lvgl_port_init();
     log_info("LVGL tick timer and handler task started");
 
-    // RGB LED
     ESP_ERROR_CHECK(rgb_led_init());
-    //ESP_ERROR_CHECK(rgb_led_start_chase(2000));
-    log_info("RGB LED power-on self-test is running");
+    ESP_ERROR_CHECK(rgb_led_start_chase(2000));
+    log_info("RGB LED initialized");
 
     // ws2812b
     ws2812b_init();
@@ -65,7 +64,7 @@ void my_main()
                 aht20_err = aht20_read_err;
             }
         }
-        vTaskDelay(pdMS_TO_TICKS(2000));
+        vTaskDelay(pdMS_TO_TICKS(10000));
     }
 }
 

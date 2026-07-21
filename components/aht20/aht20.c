@@ -15,11 +15,11 @@
 #endif
 
 #ifndef AHT20_I2C_SDA_GPIO
-#define AHT20_I2C_SDA_GPIO 15
+#define AHT20_I2C_SDA_GPIO 2
 #endif
 
 #ifndef AHT20_I2C_SCL_GPIO
-#define AHT20_I2C_SCL_GPIO 16
+#define AHT20_I2C_SCL_GPIO 1
 #endif
 
 #define AHT20_I2C_ADDRESS             0x38

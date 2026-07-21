@@ -97,9 +97,7 @@ static void rgb_led_chase_task(void *arg)
                                    colors[i] == RGB_LED_COLOR_GREEN ? UINT8_MAX : 0) != ESP_OK) {
                 log_error("Failed to set chase color");
             }
-            log_info("RGB chase color: %s",
-                     colors[i] == RGB_LED_COLOR_RED ? "red" :
-                     colors[i] == RGB_LED_COLOR_YELLOW ? "yellow" : "green");
+            //log_info("RGB chase color: %s",colors[i] == RGB_LED_COLOR_RED ? "red" : colors[i] == RGB_LED_COLOR_YELLOW ? "yellow" : "green");
             if (ulTaskNotifyTake(pdTRUE, interval_ticks) != 0) {
                 goto exit;
             }

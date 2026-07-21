@@ -7,9 +7,9 @@
 #define LOG_TAG "rgb_led"
 #include "platform_log.h"
 
-#define RGB_LED_RED_GPIO        4
-#define RGB_LED_YELLOW_GPIO     5
-#define RGB_LED_GREEN_GPIO      6
+#define RGB_LED_RED_GPIO        14
+#define RGB_LED_YELLOW_GPIO     13
+#define RGB_LED_GREEN_GPIO      12
 #define RGB_LED_PWM_FREQUENCY_HZ 5000
 #define RGB_LED_ACTIVE_LOW      false
 

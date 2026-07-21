@@ -4,8 +4,12 @@
 
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
+#include "esp_adc/adc_cali.h"
+#include "esp_adc/adc_cali_scheme.h"
+#include "esp_adc/adc_oneshot.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "lcd.h"
 
 #define LOG_TAG "touch"
 #include "platform_log.h"
@@ -18,10 +22,133 @@
 #define TOUCH_AXIS_MIN_VALID_SAMPLES 3
 #define TOUCH_TASK_STACK_SIZE 3072
 #define TOUCH_TASK_PRIORITY 4
+#define TOUCH_IRQ_ADC_GPIO 4
+#define TOUCH_IRQ_ADC_LOG_PERIOD_MS 1000
+#define TOUCH_IRQ_ADC_SAMPLE_COUNT 9
+#define TOUCH_IRQ_ADC_TASK_STACK_SIZE 2048
+#define TOUCH_IRQ_ADC_TASK_PRIORITY 3
+#define TOUCH_IRQ_ADC_MAX_VOLTAGE_MV 3300
+
+/*
+ * 五点最小二乘仿射校准，采集于 LCD_ORIENTATION_PORTRAIT_INVERTED。
+ *
+ * screen_x =  0.06737225 * raw_x + 0.00064867 * raw_y - 16.61356263
+ * screen_y =  0.00069024 * raw_x - 0.09033900 * raw_y + 350.29080470
+ */
+#define TOUCH_CAL_X_RAW_X 0.06737225f
+#define TOUCH_CAL_X_RAW_Y 0.00064867f
+#define TOUCH_CAL_X_OFFSET -16.61356263f
+#define TOUCH_CAL_Y_RAW_X 0.00069024f
+#define TOUCH_CAL_Y_RAW_Y -0.09033900f
+#define TOUCH_CAL_Y_OFFSET 350.29080470f
 
 static spi_device_handle_t s_touch_device;
 static TaskHandle_t s_touch_task;
 static volatile bool s_touch_active;
+static adc_oneshot_unit_handle_t s_irq_adc_unit;
+static adc_cali_handle_t s_irq_adc_cali;
+
+static esp_err_t touch_irq_adc_read_filtered(int *raw_value)
+{
+    int samples[TOUCH_IRQ_ADC_SAMPLE_COUNT];
+
+    for (size_t index = 0; index < TOUCH_IRQ_ADC_SAMPLE_COUNT; ++index) {
+        esp_err_t err = adc_oneshot_read(s_irq_adc_unit, ADC_CHANNEL_3, &samples[index]);
+        if (err != ESP_OK) {
+            return err;
+        }
+    }
+
+    for (size_t index = 1; index < TOUCH_IRQ_ADC_SAMPLE_COUNT; ++index) {
+        const int current = samples[index];
+        size_t position = index;
+        while (position > 0 && samples[position - 1] > current) {
+            samples[position] = samples[position - 1];
+            --position;
+        }
+        samples[position] = current;
+    }
+
+    *raw_value = samples[TOUCH_IRQ_ADC_SAMPLE_COUNT / 2];
+    return ESP_OK;
+}
+
+static void touch_irq_adc_log_task(void *arg)
+{
+    (void)arg;
+
+    while (true) {
+        int raw;
+        esp_err_t err = touch_irq_adc_read_filtered(&raw);
+        if (err != ESP_OK) {
+            log_error("IRQ ADC read failed: %s", esp_err_to_name(err));
+        } else if (s_irq_adc_cali != NULL) {
+            int voltage_mv;
+            err = adc_cali_raw_to_voltage(s_irq_adc_cali, raw, &voltage_mv);
+            if (err == ESP_OK && voltage_mv >= 0 &&
+                voltage_mv <= TOUCH_IRQ_ADC_MAX_VOLTAGE_MV) {
+                log_info("IRQ ADC: GPIO%d raw=%d voltage=%d mV (median, calibrated)",
+                         TOUCH_IRQ_ADC_GPIO, raw, voltage_mv);
+            } else {
+                voltage_mv = (raw * TOUCH_IRQ_ADC_MAX_VOLTAGE_MV + 2047) / 4095;
+                log_warn("IRQ ADC: GPIO%d raw=%d voltage=%d mV "
+                         "(median, estimated; calibration result rejected)",
+                         TOUCH_IRQ_ADC_GPIO, raw, voltage_mv);
+            }
+        } else {
+            const int voltage_mv =
+                (raw * TOUCH_IRQ_ADC_MAX_VOLTAGE_MV + 2047) / 4095;
+            log_info("IRQ ADC: GPIO%d raw=%d voltage=%d mV "
+                     "(median, estimated; calibration unavailable)",
+                     TOUCH_IRQ_ADC_GPIO, raw, voltage_mv);
+        }
+        vTaskDelay(pdMS_TO_TICKS(TOUCH_IRQ_ADC_LOG_PERIOD_MS));
+    }
+}
+
+static esp_err_t touch_irq_adc_init(void)
+{
+    const adc_oneshot_unit_init_cfg_t unit_config = {
+        .unit_id = ADC_UNIT_1,
+    };
+    esp_err_t err = adc_oneshot_new_unit(&unit_config, &s_irq_adc_unit);
+    if (err != ESP_OK) {
+        return err;
+    }
+
+    const adc_oneshot_chan_cfg_t channel_config = {
+        .atten = ADC_ATTEN_DB_11,
+        .bitwidth = ADC_BITWIDTH_DEFAULT,
+    };
+    err = adc_oneshot_config_channel(s_irq_adc_unit, ADC_CHANNEL_3, &channel_config);
+    if (err != ESP_OK) {
+        return err;
+    }
+
+#if ADC_CALI_SCHEME_CURVE_FITTING_SUPPORTED
+    const adc_cali_curve_fitting_config_t cali_config = {
+        .unit_id = ADC_UNIT_1,
+        .chan = ADC_CHANNEL_3,
+        .atten = ADC_ATTEN_DB_11,
+        .bitwidth = ADC_BITWIDTH_DEFAULT,
+    };
+    err = adc_cali_create_scheme_curve_fitting(&cali_config, &s_irq_adc_cali);
+    if (err != ESP_OK) {
+        s_irq_adc_cali = NULL;
+        log_warn("IRQ ADC calibration unavailable: %s", esp_err_to_name(err));
+    }
+#endif
+
+    BaseType_t task_created = xTaskCreate(touch_irq_adc_log_task, "irq_adc",
+                                          TOUCH_IRQ_ADC_TASK_STACK_SIZE, NULL,
+                                          TOUCH_IRQ_ADC_TASK_PRIORITY, NULL);
+    if (task_created != pdPASS) {
+        return ESP_ERR_NO_MEM;
+    }
+
+    log_info("IRQ ADC test initialized: GPIO%d ADC1_CH3", TOUCH_IRQ_ADC_GPIO);
+    return ESP_OK;
+}
 
 static void IRAM_ATTR touch_irq_isr_handler(void *arg)
 {
@@ -102,6 +229,11 @@ esp_err_t touch_read_raw(touch_raw_data_t *data)
     }
 
     *data = (touch_raw_data_t){0};
+    /*
+     * 不只依赖 ISR 保存的状态：若上电时或任务切换期间漏掉首个边沿，
+     * 仍可根据 T_IRQ 的当前低电平开始采样。
+     */
+    s_touch_active = gpio_get_level(TOUCH_PIN_IRQ) == 0;
     if (!s_touch_active) {
         return ESP_OK;
     }
@@ -126,6 +258,46 @@ esp_err_t touch_read_raw(touch_raw_data_t *data)
     return ESP_OK;
 }
 
+static uint16_t touch_clamp_coordinate(float coordinate, uint16_t maximum)
+{
+    if (coordinate <= 0.0f) {
+        return 0;
+    }
+    if (coordinate >= (float)maximum) {
+        return maximum;
+    }
+    return (uint16_t)(coordinate + 0.5f);
+}
+
+esp_err_t touch_read_point(touch_point_t *data)
+{
+    if (data == NULL) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    touch_raw_data_t raw_data;
+    esp_err_t err = touch_read_raw(&raw_data);
+    if (err != ESP_OK) {
+        return err;
+    }
+
+    *data = (touch_point_t){
+        .pressed = raw_data.pressed,
+        .valid = raw_data.valid,
+    };
+    if (!raw_data.valid) {
+        return ESP_OK;
+    }
+
+    const float x = TOUCH_CAL_X_RAW_X * raw_data.raw_x +
+                    TOUCH_CAL_X_RAW_Y * raw_data.raw_y + TOUCH_CAL_X_OFFSET;
+    const float y = TOUCH_CAL_Y_RAW_X * raw_data.raw_x +
+                    TOUCH_CAL_Y_RAW_Y * raw_data.raw_y + TOUCH_CAL_Y_OFFSET;
+    data->x = touch_clamp_coordinate(x, LCD_H_RES - 1);
+    data->y = touch_clamp_coordinate(y, LCD_V_RES - 1);
+    return ESP_OK;
+}
+
 static void touch_raw_log_task(void *arg)
 {
     (void)arg;
@@ -136,8 +308,8 @@ static void touch_raw_log_task(void *arg)
     TickType_t last_move_log = 0;
 
     while (true) {
-        touch_raw_data_t data;
-        esp_err_t err = touch_read_raw(&data);
+        touch_point_t data;
+        esp_err_t err = touch_read_point(&data);
         if (err != ESP_OK) {
             log_error("raw read failed: %s", esp_err_to_name(err));
             vTaskDelay(pdMS_TO_TICKS(TOUCH_POLL_PERIOD_MS));
@@ -148,19 +320,19 @@ static void touch_raw_log_task(void *arg)
         if (!data.pressed) {
             has_valid_sample = false;
         } else if (data.valid && !has_valid_sample) {
-            log_info("pressed: raw_x=%u raw_y=%u", data.raw_x, data.raw_y);
+            log_info("pressed: x=%u y=%u", data.x, data.y);
             last_move_log = now;
             has_valid_sample = true;
         } else if (data.valid &&
-                   (data.raw_x != last_x || data.raw_y != last_y) &&
+                   (data.x != last_x || data.y != last_y) &&
                    now - last_move_log >= pdMS_TO_TICKS(TOUCH_MOVE_LOG_PERIOD_MS)) {
-            log_info("moved: raw_x=%u raw_y=%u", data.raw_x, data.raw_y);
+            log_info("moved: x=%u y=%u", data.x, data.y);
             last_move_log = now;
         }
 
         if (data.valid) {
-            last_x = data.raw_x;
-            last_y = data.raw_y;
+            last_x = data.x;
+            last_y = data.y;
         }
         vTaskDelay(pdMS_TO_TICKS(TOUCH_POLL_PERIOD_MS));
     }
@@ -197,6 +369,22 @@ esp_err_t touch_init(void)
         return err;
     }
 
+    /*
+     * 0xD0/0x90 的 PD 位为 00，会将 HR2046 置入允许 PENIRQ 的掉电模式。
+     * 上电后先发送一次命令，避免因尚未执行过转换而错过首次 T_IRQ。
+     */
+    uint16_t discarded_sample;
+    err = touch_read_axis(TOUCH_CMD_READ_X, &discarded_sample);
+    if (err == ESP_OK) {
+        err = touch_read_axis(TOUCH_CMD_READ_Y, &discarded_sample);
+    }
+    if (err != ESP_OK) {
+        spi_bus_remove_device(s_touch_device);
+        s_touch_device = NULL;
+        log_error("HR2046 initial command failed: %s", esp_err_to_name(err));
+        return err;
+    }
+
     s_touch_active = gpio_get_level(TOUCH_PIN_IRQ) == 0;
     err = gpio_install_isr_service(0);
     if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) {
@@ -222,6 +410,12 @@ esp_err_t touch_init(void)
         s_touch_device = NULL;
         log_error("raw log task creation failed");
         return ESP_ERR_NO_MEM;
+    }
+
+    err = touch_irq_adc_init();
+    if (err != ESP_OK) {
+        log_error("IRQ ADC test init failed: %s", esp_err_to_name(err));
+        return err;
     }
 
     log_info("HR2046 raw test initialized: SPI=%d CS=%d IRQ=%d mode=%d clock=%dHz",

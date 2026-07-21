@@ -17,7 +17,7 @@
 #define LVGL_TICK_PERIOD_US 2000
 #define LVGL_TASK_STACK_SIZE 4096
 #define LVGL_TASK_PRIORITY 5
-#define TOUCH_RAW_TEST_ENABLED 0
+#define TOUCH_RAW_TEST_ENABLED 1
 
 static esp_timer_handle_t s_lvgl_tick_timer;
 

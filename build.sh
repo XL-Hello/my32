@@ -52,24 +52,28 @@ prepare_build_directory()
     local config_env_file="${PROJECT_ROOT}/build/config.env"
     local bootloader_cache_file="${PROJECT_ROOT}/build/bootloader/CMakeCache.txt"
     local cached_idf_path
+    local -a cached_idf_paths=()
 
     IDF_CHANGED=0
     if [[ -f "${bootloader_command_file}" ]]; then
-        cached_idf_path="$(rg -o -m 1 -- '-DIDF_PATH=[^;]+' "${bootloader_command_file}" 2>/dev/null | cut -d= -f2-)"
-    elif [[ -f "${config_env_file}" ]]; then
-        cached_idf_path="$(rg -o -m 1 '"IDF_PATH": "[^"]+"' "${config_env_file}" 2>/dev/null | cut -d'"' -f4)"
-    elif [[ -f "${bootloader_cache_file}" ]]; then
-        cached_idf_path="$(rg -m 1 '^IDF_PATH:.*=' "${bootloader_cache_file}" 2>/dev/null | cut -d= -f2-)"
-    else
-        return 0
+        cached_idf_paths+=("$(rg -o -m 1 -- '-DIDF_PATH=[^;]+' "${bootloader_command_file}" 2>/dev/null | cut -d= -f2-)")
+    fi
+    if [[ -f "${config_env_file}" ]]; then
+        cached_idf_paths+=("$(rg -o -m 1 '"IDF_PATH": "[^"]+"' "${config_env_file}" 2>/dev/null | cut -d'"' -f4)")
+    fi
+    if [[ -f "${bootloader_cache_file}" ]]; then
+        cached_idf_paths+=("$(rg -m 1 '^IDF_PATH:.*=' "${bootloader_cache_file}" 2>/dev/null | cut -d= -f2-)")
     fi
 
-    if [[ -n "${cached_idf_path}" && "${cached_idf_path}" != "${IDF_PATH}" ]]; then
-        printf '检测到 ESP-IDF 已从 %s 切换到 %s，清理旧构建缓存。\n' \
-               "${cached_idf_path}" "${IDF_PATH}"
-        idf.py fullclean || return 1
-        IDF_CHANGED=1
-    fi
+    for cached_idf_path in "${cached_idf_paths[@]}"; do
+        if [[ -n "${cached_idf_path}" && "${cached_idf_path}" != "${IDF_PATH}" ]]; then
+            printf '检测到 ESP-IDF 已从 %s 切换到 %s，清理旧构建缓存。\n' \
+                   "${cached_idf_path}" "${IDF_PATH}"
+            idf.py fullclean || return 1
+            IDF_CHANGED=1
+            return 0
+        fi
+    done
 }
 
 main()
