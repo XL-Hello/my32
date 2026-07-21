@@ -1,9 +1,9 @@
 /**
- * @file lvgl_hello_world.c
- * @brief 五点触摸坐标校准界面。
+ * @file touch_calibration_ui.c
+ * @brief 五点触摸坐标校准界面。当前仅保留代码，未启用。
  */
 
-#include "lvgl_hello_world.h"
+#include "touch_calibration_ui.h"
 
 #include "lvgl/lvgl.h"
 
@@ -31,7 +31,7 @@ static void create_calibration_target(lv_obj_t *parent, const calibration_target
     lv_obj_center(number);
 }
 
-void lvgl_hello_world_create(void)
+void touch_calibration_ui_create(void)
 {
     static const calibration_target_t targets[] = {
         {.x = 20, .y = 20, .number = "1"},
@@ -42,6 +42,7 @@ void lvgl_hello_world_create(void)
     };
 
     lv_obj_t *screen = lv_scr_act();
+    lv_obj_clean(screen);
     lv_obj_set_style_bg_color(screen, lv_color_black(), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, LV_PART_MAIN);
 

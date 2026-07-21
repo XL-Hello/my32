@@ -4,9 +4,6 @@
 
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
-#include "esp_adc/adc_cali.h"
-#include "esp_adc/adc_cali_scheme.h"
-#include "esp_adc/adc_oneshot.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "lcd.h"
@@ -22,12 +19,6 @@
 #define TOUCH_AXIS_MIN_VALID_SAMPLES 3
 #define TOUCH_TASK_STACK_SIZE 3072
 #define TOUCH_TASK_PRIORITY 4
-#define TOUCH_IRQ_ADC_GPIO 4
-#define TOUCH_IRQ_ADC_LOG_PERIOD_MS 1000
-#define TOUCH_IRQ_ADC_SAMPLE_COUNT 9
-#define TOUCH_IRQ_ADC_TASK_STACK_SIZE 2048
-#define TOUCH_IRQ_ADC_TASK_PRIORITY 3
-#define TOUCH_IRQ_ADC_MAX_VOLTAGE_MV 3300
 
 /*
  * 五点最小二乘仿射校准，采集于 LCD_ORIENTATION_PORTRAIT_INVERTED。
@@ -45,110 +36,6 @@
 static spi_device_handle_t s_touch_device;
 static TaskHandle_t s_touch_task;
 static volatile bool s_touch_active;
-static adc_oneshot_unit_handle_t s_irq_adc_unit;
-static adc_cali_handle_t s_irq_adc_cali;
-
-static esp_err_t touch_irq_adc_read_filtered(int *raw_value)
-{
-    int samples[TOUCH_IRQ_ADC_SAMPLE_COUNT];
-
-    for (size_t index = 0; index < TOUCH_IRQ_ADC_SAMPLE_COUNT; ++index) {
-        esp_err_t err = adc_oneshot_read(s_irq_adc_unit, ADC_CHANNEL_3, &samples[index]);
-        if (err != ESP_OK) {
-            return err;
-        }
-    }
-
-    for (size_t index = 1; index < TOUCH_IRQ_ADC_SAMPLE_COUNT; ++index) {
-        const int current = samples[index];
-        size_t position = index;
-        while (position > 0 && samples[position - 1] > current) {
-            samples[position] = samples[position - 1];
-            --position;
-        }
-        samples[position] = current;
-    }
-
-    *raw_value = samples[TOUCH_IRQ_ADC_SAMPLE_COUNT / 2];
-    return ESP_OK;
-}
-
-static void touch_irq_adc_log_task(void *arg)
-{
-    (void)arg;
-
-    while (true) {
-        int raw;
-        esp_err_t err = touch_irq_adc_read_filtered(&raw);
-        if (err != ESP_OK) {
-            log_error("IRQ ADC read failed: %s", esp_err_to_name(err));
-        } else if (s_irq_adc_cali != NULL) {
-            int voltage_mv;
-            err = adc_cali_raw_to_voltage(s_irq_adc_cali, raw, &voltage_mv);
-            if (err == ESP_OK && voltage_mv >= 0 &&
-                voltage_mv <= TOUCH_IRQ_ADC_MAX_VOLTAGE_MV) {
-                log_info("IRQ ADC: GPIO%d raw=%d voltage=%d mV (median, calibrated)",
-                         TOUCH_IRQ_ADC_GPIO, raw, voltage_mv);
-            } else {
-                voltage_mv = (raw * TOUCH_IRQ_ADC_MAX_VOLTAGE_MV + 2047) / 4095;
-                log_warn("IRQ ADC: GPIO%d raw=%d voltage=%d mV "
-                         "(median, estimated; calibration result rejected)",
-                         TOUCH_IRQ_ADC_GPIO, raw, voltage_mv);
-            }
-        } else {
-            const int voltage_mv =
-                (raw * TOUCH_IRQ_ADC_MAX_VOLTAGE_MV + 2047) / 4095;
-            log_info("IRQ ADC: GPIO%d raw=%d voltage=%d mV "
-                     "(median, estimated; calibration unavailable)",
-                     TOUCH_IRQ_ADC_GPIO, raw, voltage_mv);
-        }
-        vTaskDelay(pdMS_TO_TICKS(TOUCH_IRQ_ADC_LOG_PERIOD_MS));
-    }
-}
-
-static esp_err_t touch_irq_adc_init(void)
-{
-    const adc_oneshot_unit_init_cfg_t unit_config = {
-        .unit_id = ADC_UNIT_1,
-    };
-    esp_err_t err = adc_oneshot_new_unit(&unit_config, &s_irq_adc_unit);
-    if (err != ESP_OK) {
-        return err;
-    }
-
-    const adc_oneshot_chan_cfg_t channel_config = {
-        .atten = ADC_ATTEN_DB_11,
-        .bitwidth = ADC_BITWIDTH_DEFAULT,
-    };
-    err = adc_oneshot_config_channel(s_irq_adc_unit, ADC_CHANNEL_3, &channel_config);
-    if (err != ESP_OK) {
-        return err;
-    }
-
-#if ADC_CALI_SCHEME_CURVE_FITTING_SUPPORTED
-    const adc_cali_curve_fitting_config_t cali_config = {
-        .unit_id = ADC_UNIT_1,
-        .chan = ADC_CHANNEL_3,
-        .atten = ADC_ATTEN_DB_11,
-        .bitwidth = ADC_BITWIDTH_DEFAULT,
-    };
-    err = adc_cali_create_scheme_curve_fitting(&cali_config, &s_irq_adc_cali);
-    if (err != ESP_OK) {
-        s_irq_adc_cali = NULL;
-        log_warn("IRQ ADC calibration unavailable: %s", esp_err_to_name(err));
-    }
-#endif
-
-    BaseType_t task_created = xTaskCreate(touch_irq_adc_log_task, "irq_adc",
-                                          TOUCH_IRQ_ADC_TASK_STACK_SIZE, NULL,
-                                          TOUCH_IRQ_ADC_TASK_PRIORITY, NULL);
-    if (task_created != pdPASS) {
-        return ESP_ERR_NO_MEM;
-    }
-
-    log_info("IRQ ADC test initialized: GPIO%d ADC1_CH3", TOUCH_IRQ_ADC_GPIO);
-    return ESP_OK;
-}
 
 static void IRAM_ATTR touch_irq_isr_handler(void *arg)
 {
@@ -410,12 +297,6 @@ esp_err_t touch_init(void)
         s_touch_device = NULL;
         log_error("raw log task creation failed");
         return ESP_ERR_NO_MEM;
-    }
-
-    err = touch_irq_adc_init();
-    if (err != ESP_OK) {
-        log_error("IRQ ADC test init failed: %s", esp_err_to_name(err));
-        return err;
     }
 
     log_info("HR2046 raw test initialized: SPI=%d CS=%d IRQ=%d mode=%d clock=%dHz",

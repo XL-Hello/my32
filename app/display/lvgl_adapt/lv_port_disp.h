@@ -42,6 +42,13 @@ void disp_enable_update(void);
 /* 禁止 LVGL 调用 disp_flush() 时更新屏幕。 */
 void disp_disable_update(void);
 
+/**
+ * @brief 获取最近一秒内完成的 LVGL 刷新周期数。
+ *
+ * 统计单位为一次脏矩形刷新周期，而不是单个 DMA 传输块；超过一秒无刷新时返回 0。
+ */
+uint32_t lv_port_disp_get_refresh_fps(void);
+
 /**********************
  *        宏
  **********************/

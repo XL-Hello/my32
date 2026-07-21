@@ -18,6 +18,7 @@
  *********************/
 #define MY_DISP_HOR_RES LCD_H_RES
 #define MY_DISP_VER_RES LCD_V_RES
+#define LVGL_FPS_WINDOW_MS 1000
 
 /**********************
  *      类型定义
@@ -30,6 +31,8 @@ static void disp_init(void);
 
 static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
 static bool lcd_flush_ready_callback(void *user_ctx);
+static void disp_monitor_callback(lv_disp_drv_t *disp_drv, uint32_t time_ms,
+                                  uint32_t pixel_count);
 // static void gpu_fill(lv_disp_drv_t * disp_drv, lv_color_t * dest_buf, lv_coord_t dest_width,
 //                      const lv_area_t * fill_area, lv_color_t color);
 
@@ -37,6 +40,10 @@ static bool lcd_flush_ready_callback(void *user_ctx);
  *      静态变量
  **********************/
 static lv_disp_drv_t *s_pending_disp_drv;
+static uint32_t s_fps_window_start_ms;
+static uint32_t s_last_refresh_ms;
+static uint32_t s_refresh_count;
+static uint32_t s_refresh_fps;
 
 /**********************
  *        宏
@@ -109,6 +116,9 @@ void lv_port_disp_init(void)
     /* 设置将绘图缓冲区内容发送到显示屏的回调。 */
     disp_drv.flush_cb = disp_flush;
 
+    /* 每个 LVGL 脏矩形刷新周期完成时调用一次，用于统计实际 UI 刷新率。 */
+    disp_drv.monitor_cb = disp_monitor_callback;
+
     /* 绑定显示缓冲区。 */
     disp_drv.draw_buf = &draw_buf_dsc_1;
 
@@ -150,6 +160,14 @@ void disp_disable_update(void)
     disp_flush_enabled = false;
 }
 
+uint32_t lv_port_disp_get_refresh_fps(void)
+{
+    if (s_last_refresh_ms == 0 || lv_tick_elaps(s_last_refresh_ms) >= LVGL_FPS_WINDOW_MS) {
+        return 0;
+    }
+    return s_refresh_fps;
+}
+
 /* 将内部绘图缓冲区中指定区域的内容刷新到屏幕。
  * 可以使用 DMA 或硬件加速器在后台执行；传输完成后必须调用 `lv_disp_flush_ready()`。 */
 static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
@@ -177,6 +195,36 @@ static bool lcd_flush_ready_callback(void *user_ctx)
     }
 
     return false;
+}
+
+/*
+ * monitor_cb 对应一次 LVGL 刷新周期，而非一次 disp_flush()。
+ * 一个周期可以包含多个脏矩形及多个 DMA 传输块，因而适合作为 UI FPS 的计数单位。
+ */
+static void disp_monitor_callback(lv_disp_drv_t *disp_drv, uint32_t time_ms,
+                                  uint32_t pixel_count)
+{
+    (void)disp_drv;
+    (void)time_ms;
+
+    if (pixel_count == 0) {
+        return;
+    }
+
+    const uint32_t now_ms = lv_tick_get();
+    if (s_fps_window_start_ms == 0) {
+        s_fps_window_start_ms = now_ms;
+    }
+
+    s_last_refresh_ms = now_ms;
+    ++s_refresh_count;
+
+    const uint32_t elapsed_ms = lv_tick_elaps(s_fps_window_start_ms);
+    if (elapsed_ms >= LVGL_FPS_WINDOW_MS) {
+        s_refresh_fps = s_refresh_count * 1000U / elapsed_ms;
+        s_refresh_count = 0;
+        s_fps_window_start_ms = now_ms;
+    }
 }
 
 /* 可选：GPU 接口。 */

@@ -11,11 +11,13 @@
 #include "freertos/task.h"
 #include "esp_chip_info.h"
 #include "esp_flash.h"
-#include "aht20.h"
 #include "lcd.h"
 #include "rgb_led.h"
 #include "ws2812b.h"
 #include "display/lvgl_adapt/lvgl_port.h"
+#include "services/environment_sensor/environment_sensor.h"
+#include "services/cpu_usage/cpu_usage.h"
+#include "services/system_time/system_time.h"
 
 #define LOG_TAG "main"
 #include "platform_log.h"
@@ -30,6 +32,9 @@ void my_main()
     // ESP_ERROR_CHECK(lcd_init());
     // ESP_ERROR_CHECK(lcd_test_colors());
     //ESP_ERROR_CHECK(lcd_test_version());
+    ESP_ERROR_CHECK(environment_sensor_init());
+    log_info("environment sensor service started");
+
     log_info("LVGL initialization started");
     lvgl_port_init();
     log_info("LVGL tick timer and handler task started");
@@ -44,33 +49,14 @@ void my_main()
     ws2812b_refresh();
     log_info("ws2812b initialized");
 
-    esp_err_t aht20_err = ESP_ERR_INVALID_STATE;
-    while (true) {
-        if (aht20_err != ESP_OK) {
-            aht20_err = aht20_init();
-            if (aht20_err != ESP_OK) {
-                log_warn("AHT20 initialization failed: %s", esp_err_to_name(aht20_err));
-            }
-        }
-        if (aht20_err == ESP_OK) {
-            float temperature_c;
-            float humidity_rh;
-            const esp_err_t aht20_read_err = aht20_read(&temperature_c, &humidity_rh);
-            if (aht20_read_err == ESP_OK) {
-                log_info("AHT20: temperature=%.2f C, humidity=%.2f %%RH",
-                         (double)temperature_c, (double)humidity_rh);
-            } else {
-                log_warn("AHT20 read failed: %s", esp_err_to_name(aht20_read_err));
-                aht20_err = aht20_read_err;
-            }
-        }
-        vTaskDelay(pdMS_TO_TICKS(10000));
-    }
 }
 
 void app_main(void)
 {
     printf("Hello world!\n");
+
+    ESP_ERROR_CHECK(system_time_init());
+    ESP_ERROR_CHECK(cpu_usage_init());
 
     /* Print chip information */
     esp_chip_info_t chip_info;

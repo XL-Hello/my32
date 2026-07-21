@@ -10,7 +10,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "lv_port_disp.h"
-#include "lvgl_hello_world.h"
+#include "home_ui.h"
 #include "lvgl/lvgl.h"
 #include "touch.h"
 
@@ -18,6 +18,7 @@
 #define LVGL_TASK_STACK_SIZE 4096
 #define LVGL_TASK_PRIORITY 5
 #define TOUCH_RAW_TEST_ENABLED 1
+#define UI_FRAME_PERIOD_MS 33 // 30 FPS
 
 static esp_timer_handle_t s_lvgl_tick_timer;
 
@@ -31,11 +32,11 @@ static void lvgl_task(void *arg)
 {
     (void)arg;
 
-    lvgl_hello_world_create();
+    home_ui_create();
 
     while (true) {
         lv_timer_handler();
-        vTaskDelay(1);
+        vTaskDelay(pdMS_TO_TICKS(UI_FRAME_PERIOD_MS));
     }
 }
 
