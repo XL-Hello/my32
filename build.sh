@@ -12,6 +12,7 @@ show_usage()
     printf '%s\n' "用法:"
     printf '%s\n' "  source ./build.sh env          切换当前终端到项目内 esp-idf（缺失时使用全局 SDK）"
     printf '%s\n' "  ./build.sh build               优先使用项目内 esp-idf 编译"
+    printf '%s\n' "  ./build.sh clean               清理 bootloader 的 SDK/CMake 缓存"
     printf '%s\n' "  ./build.sh flash /dev/ttyACM0  优先使用项目内 esp-idf 烧录"
 }
 
@@ -76,6 +77,20 @@ prepare_build_directory()
     done
 }
 
+clean_bootloader_cache()
+{
+    local bootloader_build_dir="${PROJECT_ROOT}/build/bootloader"
+    local bootloader_prefix_dir="${PROJECT_ROOT}/build/bootloader-prefix"
+
+    if [[ ! -d "${bootloader_build_dir}" && ! -d "${bootloader_prefix_dir}" ]]; then
+        printf '%s\n' "未找到 bootloader CMake 缓存，无需清理。"
+        return 0
+    fi
+
+    rm -rf -- "${bootloader_build_dir}" "${bootloader_prefix_dir}"
+    printf '%s\n' "已清理 bootloader 的 SDK/CMake 缓存。"
+}
+
 main()
 {
     local command="${1:-}"
@@ -96,6 +111,9 @@ main()
             show_active_idf
             prepare_build_directory || return 1
             idf.py build
+            ;;
+        clean)
+            clean_bootloader_cache
             ;;
         flash)
             if [[ $# -ne 2 ]]; then

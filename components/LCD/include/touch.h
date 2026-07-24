@@ -8,7 +8,7 @@
 /** 触摸控制器使用的独立 SPI 片选，低有效。 */
 #define TOUCH_PIN_CS 8
 
-/** 触摸控制器的按下中断输入，通常低有效。 */
+/** 触摸控制器的按下状态输入，通常低有效；由 LVGL 输入回调轮询。 */
 #define TOUCH_PIN_IRQ 18
 
 /** HR2046/XPT2046 兼容控制器的常用 12-bit 坐标读取命令。 */
@@ -30,9 +30,10 @@ typedef struct {
 } touch_point_t;
 
 /**
- * @brief 初始化 HR2046 触摸设备并启动 raw 坐标测试日志任务。
+ * @brief 初始化 HR2046 触摸设备。
  *
  * @note 必须在 lcd_init() 成功后调用；LCD 组件已初始化 SPI2 总线。
+ *       坐标由调用方按需通过 touch_read_point() 读取；默认不创建原始坐标日志任务。
  */
 esp_err_t touch_init(void);
 

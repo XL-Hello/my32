@@ -18,6 +18,7 @@
 #include "services/environment_sensor/environment_sensor.h"
 #include "services/cpu_usage/cpu_usage.h"
 #include "services/system_time/system_time.h"
+#include "sim_uart.h"
 
 #define LOG_TAG "main"
 #include "platform_log.h"
@@ -48,6 +49,14 @@ void my_main()
     ws2812b_set_pixel(0, 5, 5, 5);
     ws2812b_refresh();
     log_info("ws2812b initialized");
+
+    // sim_uart
+    if (sim_uart_init() != 0) {
+        log_error("sim_uart initialization failed");
+        return;
+    }
+    sim_uart_test_init();
+    log_info("sim_uart test task started");
 
 }
 

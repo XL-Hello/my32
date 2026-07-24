@@ -83,15 +83,15 @@ void lv_port_disp_init(void)
      */
 
     /* 方案 1：单缓冲。 */
-    static lv_disp_draw_buf_t draw_buf_dsc_1;
-    static lv_color_t buf_1[MY_DISP_HOR_RES * 20]; /* 可容纳 20 行像素的缓冲区。 */
-    lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, NULL, MY_DISP_HOR_RES * 20); /* 初始化显示缓冲区。 */
+    // static lv_disp_draw_buf_t draw_buf_dsc_1;
+    // static lv_color_t buf_1[MY_DISP_HOR_RES * 20]; /* 可容纳 20 行像素的缓冲区。 */
+    // lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, NULL, MY_DISP_HOR_RES * 20); /* 初始化显示缓冲区。 */
 
     // /* 方案 2：双小缓冲。 */
-    // static lv_disp_draw_buf_t draw_buf_dsc_2;
-    // static lv_color_t buf_2_1[MY_DISP_HOR_RES * 10]; /* 可容纳 10 行像素的第一个缓冲区。 */
-    // static lv_color_t buf_2_2[MY_DISP_HOR_RES * 10]; /* 可容纳 10 行像素的第二个缓冲区。 */
-    // lv_disp_draw_buf_init(&draw_buf_dsc_2, buf_2_1, buf_2_2, MY_DISP_HOR_RES * 10); /* 初始化显示缓冲区。 */
+    static lv_disp_draw_buf_t draw_buf_dsc_2;
+    static lv_color_t buf_2_1[MY_DISP_HOR_RES * 10]; /* 可容纳 10 行像素的第一个缓冲区。 */
+    static lv_color_t buf_2_2[MY_DISP_HOR_RES * 10]; /* 可容纳 10 行像素的第二个缓冲区。 */
+    lv_disp_draw_buf_init(&draw_buf_dsc_2, buf_2_1, buf_2_2, MY_DISP_HOR_RES * 10); /* 初始化显示缓冲区。 */
 
     // /* 方案 3：双全屏缓冲；还需在下方设置 disp_drv.full_refresh = 1。 */
     // static lv_disp_draw_buf_t draw_buf_dsc_3;
@@ -120,7 +120,7 @@ void lv_port_disp_init(void)
     disp_drv.monitor_cb = disp_monitor_callback;
 
     /* 绑定显示缓冲区。 */
-    disp_drv.draw_buf = &draw_buf_dsc_1;
+    disp_drv.draw_buf = &draw_buf_dsc_2;
 
     /* 方案 3 必需的设置。 */
     // disp_drv.full_refresh = 1;

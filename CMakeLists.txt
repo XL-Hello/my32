@@ -4,6 +4,7 @@ set(EXTRA_COMPONENT_DIRS
     "${CMAKE_CURRENT_LIST_DIR}/app"
     "${CMAKE_CURRENT_LIST_DIR}/components/platform"
     "${CMAKE_CURRENT_LIST_DIR}/components/aht20"
+    "${CMAKE_CURRENT_LIST_DIR}/components/tools/ringbuffer"
     "${CMAKE_CURRENT_LIST_DIR}/components/rgb_led"
     "${CMAKE_CURRENT_LIST_DIR}/components/WS2812B"
     "${CMAKE_CURRENT_LIST_DIR}/components/ESP/led_strip")

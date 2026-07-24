@@ -34,6 +34,33 @@ static int value_to_tenths(float value)
     return (int)(value * 10.0f + (value >= 0.0f ? 0.5f : -0.5f));
 }
 
+static void home_ui_gesture_event(lv_event_t *event)
+{
+    lv_indev_t *indev = lv_event_get_indev(event);
+    if (indev == NULL) {
+        return;
+    }
+
+    const lv_dir_t direction = lv_indev_get_gesture_dir(indev);
+    switch (direction) {
+    case LV_DIR_LEFT:
+        log_info("gesture detected: left");
+        break;
+    case LV_DIR_RIGHT:
+        log_info("gesture detected: right");
+        break;
+    case LV_DIR_TOP:
+        log_info("gesture detected: up");
+        break;
+    case LV_DIR_BOTTOM:
+        log_info("gesture detected: down");
+        break;
+    default:
+        log_info("gesture detected: unknown direction");
+        break;
+    }
+}
+
 static void home_ui_draw_person_line(const lv_draw_line_dsc_t *line_dsc,
                                      lv_coord_t x1, lv_coord_t y1,
                                      lv_coord_t x2, lv_coord_t y2)
@@ -146,6 +173,9 @@ void home_ui_create(void)
     lv_obj_clean(screen);
     lv_obj_set_style_bg_color(screen, lv_color_black(), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, LV_PART_MAIN);
+    /* 首页使用滑动手势验证输入链路，不让默认的可滚动屏幕抢占该手势。 */
+    lv_obj_clear_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_event_cb(screen, home_ui_gesture_event, LV_EVENT_GESTURE, NULL);
 
     s_time_label = home_ui_create_label(screen, "--:--", LV_ALIGN_TOP_MID, 0, 52);
     lv_obj_set_style_text_font(s_time_label, &lv_font_montserrat_48, LV_PART_MAIN);
