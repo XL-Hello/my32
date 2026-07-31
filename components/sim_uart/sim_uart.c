@@ -149,7 +149,7 @@ static esp_err_t sim_uart_timer_init(void)
     const gptimer_config_t timer_config = {
         .clk_src = GPTIMER_CLK_SRC_DEFAULT, // 使用驱动选择的默认时钟源。
         .direction = GPTIMER_COUNT_UP,      // 计数器从 0 开始向上递增。
-        .resolution_hz = 1000000UL,         // 计数频率为 1 MHz，即 1 个计数值等于 1us。
+        .resolution_hz = SIM_UART_TIMER_RESOLUTION_HZ, // 1 MHz，即 1 个计数值等于 1us。
         .intr_priority = 0,                 // 由中断分配器选择可用的低/中优先级向量。
     };
     // 创建 GPTimer，并将句柄保存到 s_gptimer 供后续 alarm/启动接口使用。
@@ -195,7 +195,7 @@ static esp_err_t sim_uart_tx_timer_init(void)
     const gptimer_config_t timer_config = {
         .clk_src = GPTIMER_CLK_SRC_DEFAULT,
         .direction = GPTIMER_COUNT_UP,
-        .resolution_hz = 1000000UL,
+        .resolution_hz = SIM_UART_TIMER_RESOLUTION_HZ,
         .intr_priority = 0,
     };
     esp_err_t err = gptimer_new_timer(&timer_config, &s_tx_gptimer);

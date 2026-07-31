@@ -10,7 +10,7 @@ idf_component_register(SRCS "main.c"
                     INCLUDE_DIRS "" "display" "display/lvgl_adapt" "ui/home"
                                  "ui/developerMode" "services/environment_sensor"
                                  "services/system_time" "services/cpu_usage"
-                    REQUIRES lvgl esp_timer LCD WS2812B rgb_led spi_flash platform aht20 sim_uart)
+                    REQUIRES lvgl esp_timer LCD WS2812B rgb_led spi_flash platform aht20 sim_spi W25Q64)
 
 idf_component_get_property(lvgl_component lvgl COMPONENT_LIB)
 
