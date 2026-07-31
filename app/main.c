@@ -6,24 +6,24 @@
 
 #include <stdio.h>
 #include <inttypes.h>
-#include <string.h>
 #include "sdkconfig.h"
 #include "esp_chip_info.h"
 #include "esp_flash.h"
+#include "esp_system.h"
 #include "lcd.h"
 #include "rgb_led.h"
 #include "ws2812b.h"
-#include "display/lvgl_adapt/lvgl_port.h"
-#include "services/environment_sensor/environment_sensor.h"
-#include "services/cpu_usage/cpu_usage.h"
-#include "services/system_time/system_time.h"
-#include "sim_spi.h"
-#include "w25q64.h"
+#include "lvgl_port.h"
+#include "home_ui.h"
+#include "environment_sensor.h"
+#include "cpu_usage.h"
+#include "system_time.h"
+#include "w25q64_test.h"
+#include "littlefs_esp.h"
+#include "littlefs_test.h"
 
 #define LOG_TAG "main"
 #include "platform_log.h"
-
-#define W25Q64_TEST_ADDRESS (W25Q64_CAPACITY_BYTES - W25Q64_SECTOR_SIZE)
 
 /**************************************功能配置与说明区******************************************/
 #define ENABLE_ILI9341_LCD              1  // [ILI9341 LCD+彩色液晶显示屏][使用 ESP-IDF SPI2 驱动][占用 SPI2_HOST、GPIO5(MISO)、GPIO6(SCLK)、GPIO7(MOSI)、GPIO15(DC)、GPIO16(RST)、GPIO17(CS)]
@@ -37,6 +37,7 @@
 #define ENABLE_W25Q64                   1  // [W25Q64+SPI NOR Flash][使用软件 SPI 驱动][占用 GPIO36(SCLK)、GPIO35(MOSI)、GPIO37(MISO)、GPIO38(CS) 及一个 GPTimer]
 #define ENABLE_SIM_UART                 1  // [软件 UART+串行通信接口][使用 GPIO 中断与 GPTimer 模拟驱动][占用 GPIO9(TX)、GPIO11(RX) 及两个 GPTimer]
 #define ENABLE_SIM_SPI                  1  // [软件 SPI+串行外设接口][使用 GPIO 与 GPTimer 模拟驱动][占用 GPIO36(SCLK)、GPIO35(MOSI)、GPIO37(MISO)、GPIO38(CS) 及一个 GPTimer（与 W25Q64 共用）]
+#define ENABLE_LITTLEFS                 1  // [LittleFS 文件系统][使用 ESP32-S3 主 Flash 尾部 2 MiB 分区，挂载路径 /littlefs]
 /*********************************************************************************************/
 
 
@@ -44,81 +45,24 @@
 #define ENABLE_RINGBUFFER                 1
 #define ENABLE_LOG                        1
 
-
-
-static sim_spi_config_t s_w25q64_spi;
-static w25q64_t s_w25q64;
-
-static esp_err_t w25q64_communication_test(void)
-{
-    static const uint8_t write_data[] = {
-        0x53, 0x49, 0x4D, 0x2D, 0x53, 0x50, 0x49, 0x20,
-        0x57, 0x32, 0x35, 0x51, 0x36, 0x34, 0x20, 0x4F,
-        0x4B,
-    };
-    uint8_t read_data[sizeof(write_data)] = { 0 };
-    uint32_t jedec_id = 0;
-
-    esp_err_t result = sim_spi_init(&s_w25q64_spi);
-    if (result != ESP_OK) {
-        return result;
-    }
-
-    esp_err_t err = w25q64_init(&s_w25q64, &s_w25q64_spi);
-    if (err != ESP_OK) {
-        result = err;
-        goto cleanup;
-    }
-    err = w25q64_read_jedec_id(&s_w25q64, &jedec_id);
-    if (err != ESP_OK) {
-        result = err;
-        goto cleanup;
-    }
-    log_info("W25Q64 JEDEC ID: 0x%06" PRIX32, jedec_id);
-    if ((jedec_id & 0xFFU) != W25Q64_JEDEC_CAPACITY_CODE) {
-        log_error("unexpected flash capacity code: 0x%02" PRIX32, jedec_id & 0xFFU);
-        result = ESP_ERR_NOT_FOUND;
-        goto cleanup;
-    }
-
-    // 此测试会擦除最后一个 4 KiB 扇区 0x7FF000，请勿在该区域保存业务数据。
-    err = w25q64_erase_sector(&s_w25q64, W25Q64_TEST_ADDRESS);
-    if (err != ESP_OK) {
-        result = err;
-        goto cleanup;
-    }
-    err = w25q64_write(&s_w25q64, W25Q64_TEST_ADDRESS, write_data, sizeof(write_data));
-    if (err != ESP_OK) {
-        result = err;
-        goto cleanup;
-    }
-    err = w25q64_read(&s_w25q64, W25Q64_TEST_ADDRESS, read_data, sizeof(read_data));
-    if (err != ESP_OK) {
-        result = err;
-        goto cleanup;
-    }
-    if (memcmp(write_data, read_data, sizeof(write_data)) != 0) {
-        result = ESP_ERR_INVALID_RESPONSE;
-        goto cleanup;
-    }
-
-    log_info("W25Q64 write/read verification passed at 0x%06" PRIX32,
-             (uint32_t)W25Q64_TEST_ADDRESS);
-    result = ESP_OK;
-
-cleanup:
-    err = sim_spi_deinit(&s_w25q64_spi);
-    if (result == ESP_OK && err != ESP_OK) {
-        result = err;
-    }
-    return result;
-}
-
+#if ENABLE_LITTLEFS
+static const littlefs_esp_config_t s_littlefs_config = {
+    .base_path = "/littlefs",
+    .partition_label = "littlefs",
+    .format_if_mount_failed = true,
+};
+#endif
 
 
 void my_main()
 {
     // vTaskDelay(pdMS_TO_TICKS(3000));
+
+#if ENABLE_LITTLEFS
+    ESP_ERROR_CHECK(littlefs_esp_mount(&s_littlefs_config));
+    ESP_ERROR_CHECK(littlefs_esp_test());
+    ESP_ERROR_CHECK(littlefs_esp_speed_test());
+#endif
 
     // W25Q64 自检完成后会释放软件 SPI 使用的 GPTimer。
     esp_err_t w25q64_result = w25q64_communication_test();
@@ -134,7 +78,7 @@ void my_main()
     log_info("environment sensor service started");
 
     log_info("LVGL initialization started");
-    lvgl_port_init();
+    lvgl_port_init(home_ui_create);
     log_info("LVGL tick timer and handler task started");
 
     ESP_ERROR_CHECK(rgb_led_init());

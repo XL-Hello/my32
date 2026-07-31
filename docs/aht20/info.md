@@ -15,7 +15,7 @@
 
 AHT20 的 7 位 I2C 地址为 `0x38`，总线频率为 100 kHz。SDA/SCL 必须通过约 2.0–4.7 kΩ 外部电阻上拉至 AHT20 的 VCC；开发板内部上拉仅作辅助，不能替代外部上拉。AHT20 的 VCC 与 GND 间还应靠近传感器放置 10 µF 去耦电容。
 
-若接线不同，可在构建参数中覆盖以下宏，或直接修改 `components/aht20/aht20.c` 中的默认值：
+若接线不同，可在构建参数中覆盖以下宏，或直接修改 `components/drivers/sensors/aht20/aht20.c` 中的默认值：
 
 ```text
 AHT20_I2C_PORT      # 默认 I2C_NUM_0
@@ -33,7 +33,7 @@ AHT20_I2C_SCL_GPIO  # 默认 GPIO1
 4. 读取 7 字节测量帧；若忙标志仍为 1，则每 10 ms 重试，最多 5 次；随后检查 CRC-8（多项式 `0x31`，初值 `0xFF`）。
 5. 将 20 位原始值换算为温度（°C）和相对湿度（%RH）。
 
-应用通过 `aht20_init()` 初始化传感器，之后调用 `aht20_read()` 读取数据。接口声明见 `components/aht20/include/aht20.h`。
+应用通过 `aht20_init()` 初始化传感器，之后调用 `aht20_read()` 读取数据。接口声明见 `components/drivers/sensors/aht20/include/aht20.h`。
 
 ## 日志示例
 

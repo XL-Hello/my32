@@ -9,10 +9,30 @@
 
 ```text
 product_A/
-├── app/                    应用入口和产品业务编排
-├── components/             可复用的应用层组件
-│   ├── platform/           平台适配与日志等基础能力
-│   └── rgb_led/            RGB LED 应用组件
+├── app/                    产品入口、启动编排和 UI
+│   └── ui/                 首页与开发者模式页面
+├── components/
+│   ├── adapters/           框架适配层
+│   │   └── lvgl_port/      LVGL 显示与输入适配
+│   ├── diagnostics/        可选诊断与自检
+│   │   ├── littlefs_test/  LittleFS VFS 回归与速度测试
+│   │   └── w25q64_test/    W25Q64 通信自检
+│   ├── drivers/            具体芯片或模块驱动
+│   │   ├── display/ili9341/
+│   │   ├── input/xpt2046/
+│   │   ├── lighting/{rgb_led,ws2812b}/
+│   │   ├── sensors/aht20/
+│   │   └── storage/w25q64/
+│   ├── hal/                总线、VFS 与通用底层能力
+│   │   ├── common/ringbuffer/
+│   │   ├── littlefs_vfs/   ESP 分区挂载与 VFS 注册
+│   │   └── {soft_spi,soft_uart}/
+│   ├── platform/
+│   │   └── platform_log/   平台日志封装
+│   ├── services/           产品服务
+│   │   └── {cpu_usage,environment_sensor,system_time}/
+│   └── third_party/        保持可追溯的第三方源码
+│       └── {led_strip,littlefs,lvgl}/
 ├── esp-idf/                固定版本的 ESP-IDF SDK 源码副本
 ├── CMakeLists.txt
 ├── sdkconfig
@@ -21,6 +41,12 @@ product_A/
 
 `esp-idf/` 来自 ESP-IDF v5.1.2。SDK 的必要改动应单独记录，避免与 `app/`、`components/` 中的产品代码混杂。
 
+依赖只能自上而下：`app → services/adapters → drivers → hal → ESP-IDF/third_party`。
+其中 LittleFS 核心仅位于 `third_party/littlefs`；应用先调用
+`hal/littlefs_vfs` 的 `littlefs_esp_mount()` 挂载，随后通过 `/littlefs/...` 的
+标准 VFS 接口（如 `fopen`、`fread`、`fwrite`）访问文件。嵌套组件目录由根
+`CMakeLists.txt` 的 `EXTRA_COMPONENT_DIRS` 显式注册。
+
 ## 使用方法
 
 请根据开发板所搭载的 Espressif 芯片选择对应的入门指南：
@@ -28,26 +54,28 @@ product_A/
 - [ESP32 入门指南](https://docs.espressif.com/projects/esp-idf/zh_CN/stable/esp32/get-started/index.html)
 - [ESP32-S2 入门指南](https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32s2/get-started/index.html)
 
-首次使用时仍需在开发机安装 ESP-IDF 对应的编译工具链。默认构建使用全局 SDK `/home/xl/.espressif/v5.1.2/esp-idf`：
+首次使用时仍需在开发机安装 ESP-IDF 对应的编译工具链。本项目始终使用仓库内的
+`esp-idf/`，推荐直接执行：
 
 ```bash
 ./build.sh build
 ./build.sh flash /dev/ttyACM0
 ```
 
-若需切换到项目内的 SDK 副本，必须在当前终端执行：
+若需要直接使用 `idf.py`，先在当前终端启用项目内 SDK：
 
 ```bash
 source ./build.sh env
-./build.sh build
-./build.sh flash /dev/ttyACM0
+idf.py set-target esp32s3
+idf.py build
 ```
 
-切换后脚本会显示当前的 ESP-IDF 路径。`source` 的作用是让 `IDF_PATH` 在当前终端持续有效；直接执行 `./build.sh env` 只会在该脚本进程内临时切换，结束后不会影响终端。
+`source` 的作用是让 `IDF_PATH` 在当前终端持续有效；直接执行 `./build.sh env` 只会在该脚本进程内临时切换，结束后不会影响终端。
 
 请将 `esp32s3` 替换为实际目标芯片，并将 `PORT` 替换为开发板串口，例如 `/dev/ttyUSB0`。
 
-新增产品功能时，将入口与业务编排放在 `app/`；可跨业务复用的能力放在 `components/<组件名>/`；除 SDK 升级或必要补丁外，不在 `esp-idf/` 中开发产品功能。
+新增产品功能时，将入口与业务编排放在 `app/`；按职责放入对应的
+`components/services`、`components/drivers` 或 `components/hal`；除 SDK 升级或必要补丁外，不在 `esp-idf/` 中开发产品功能。
 
 ## 故障排查
 

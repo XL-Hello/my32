@@ -1,5 +1,9 @@
 # 在 ESP32-S3 上使用 LVGL 驱动 ILI9341 LCD
 
+> 历史实施记录：当前 LVGL 适配位于 `components/adapters/lvgl_port/`，ILI9341 与
+> XPT2046 驱动分别位于 `components/drivers/display/ili9341/` 和
+> `components/drivers/input/xpt2046/`。下文旧路径和阶段性状态仅保留用于追溯。
+
 本文面向第一次接触 LVGL 的开发者，目标是回答一个实际问题：
 
 > 已经有一块带 ILI9341、HR2046 触摸和 SD 卡槽的 2.8 寸 LCD，怎样从“接线”一步步做到“屏幕显示 LVGL UI，并能响应触摸”？
