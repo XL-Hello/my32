@@ -28,6 +28,8 @@ static lv_res_t decoder_info(struct _lv_img_decoder_t * decoder, const void * sr
 static lv_res_t decoder_open(lv_img_decoder_t * dec, lv_img_decoder_dsc_t * dsc);
 static void decoder_close(lv_img_decoder_t * dec, lv_img_decoder_dsc_t * dsc);
 static void convert_color_depth(uint8_t * img, uint32_t px_cnt);
+static lv_res_t load_file_from_lv_fs(const char * filename, unsigned char ** data,
+                                     size_t * data_size);
 
 /**********************
  *  STATIC VARIABLES
@@ -159,9 +161,8 @@ static lv_res_t decoder_open(lv_img_decoder_t * decoder, lv_img_decoder_dsc_t * 
             unsigned char * png_data;      /*Pointer to the loaded data. Same as the original file just loaded into the RAM*/
             size_t png_data_size;          /*Size of `png_data` in bytes*/
 
-            error = lodepng_load_file(&png_data, &png_data_size, fn);   /*Load the file*/
-            if(error) {
-                LV_LOG_WARN("error %" LV_PRIu32 ": %s\n", error, lodepng_error_text(error));
+            if(load_file_from_lv_fs(fn, &png_data, &png_data_size) != LV_RES_OK) {
+                LV_LOG_WARN("failed to load PNG file: %s", fn);
                 return LV_RES_INV;
             }
 
@@ -222,6 +223,43 @@ static void decoder_close(lv_img_decoder_t * decoder, lv_img_decoder_dsc_t * dsc
         lv_mem_free((uint8_t *)dsc->img_data);
         dsc->img_data = NULL;
     }
+}
+
+static lv_res_t load_file_from_lv_fs(const char * filename, unsigned char ** data,
+                                     size_t * data_size)
+{
+    lv_fs_file_t file;
+    uint32_t file_size;
+    uint32_t bytes_read;
+
+    *data = NULL;
+    *data_size = 0;
+
+    if(lv_fs_open(&file, filename, LV_FS_MODE_RD) != LV_FS_RES_OK) return LV_RES_INV;
+    if(lv_fs_seek(&file, 0, LV_FS_SEEK_END) != LV_FS_RES_OK ||
+       lv_fs_tell(&file, &file_size) != LV_FS_RES_OK || file_size == 0 ||
+       lv_fs_seek(&file, 0, LV_FS_SEEK_SET) != LV_FS_RES_OK) {
+        lv_fs_close(&file);
+        return LV_RES_INV;
+    }
+
+    *data = lv_mem_alloc(file_size);
+    if(*data == NULL) {
+        lv_fs_close(&file);
+        return LV_RES_INV;
+    }
+
+    if(lv_fs_read(&file, *data, file_size, &bytes_read) != LV_FS_RES_OK ||
+       bytes_read != file_size) {
+        lv_mem_free(*data);
+        *data = NULL;
+        lv_fs_close(&file);
+        return LV_RES_INV;
+    }
+
+    lv_fs_close(&file);
+    *data_size = file_size;
+    return LV_RES_OK;
 }
 
 /**

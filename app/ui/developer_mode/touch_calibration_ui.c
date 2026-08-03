@@ -6,6 +6,7 @@
 #include "touch_calibration_ui.h"
 
 #include "lvgl/lvgl.h"
+#include "ui_font.h"
 
 typedef struct {
     lv_coord_t x;
@@ -45,6 +46,7 @@ void touch_calibration_ui_create(void)
     lv_obj_clean(screen);
     lv_obj_set_style_bg_color(screen, lv_color_black(), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_text_font(screen, ui_font_get_16(), LV_PART_MAIN);
 
     lv_obj_t *instruction = lv_label_create(screen);
     lv_label_set_text(instruction, "Tap targets 1 to 5 in order");

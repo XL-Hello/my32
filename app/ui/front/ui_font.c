@@ -1,0 +1,51 @@
+#include "ui_font.h"
+
+#define LOG_TAG "ui_font"
+#include "platform_log.h"
+
+#define UI_FONT_12_PATH "R:/littlefs/fonts/esp_front_12.bin"
+#define UI_FONT_16_PATH "R:/littlefs/fonts/esp_front_16.bin"
+#define UI_FONT_20_PATH "R:/littlefs/fonts/esp_front_20.bin"
+
+static lv_font_t *s_font_12;
+static lv_font_t *s_font_16;
+static lv_font_t *s_font_20;
+
+bool ui_font_init(void)
+{
+    if (s_font_12 != NULL && s_font_16 != NULL && s_font_20 != NULL) {
+        return true;
+    }
+
+    s_font_12 = lv_font_load(UI_FONT_12_PATH);
+    s_font_16 = lv_font_load(UI_FONT_16_PATH);
+    s_font_20 = lv_font_load(UI_FONT_20_PATH);
+    if (s_font_12 == NULL || s_font_16 == NULL || s_font_20 == NULL) {
+        log_error("Failed to load UI fonts from LittleFS");
+        lv_font_free(s_font_12);
+        lv_font_free(s_font_16);
+        lv_font_free(s_font_20);
+        s_font_12 = NULL;
+        s_font_16 = NULL;
+        s_font_20 = NULL;
+        return false;
+    }
+
+    log_info("Loaded UI fonts from LittleFS");
+    return true;
+}
+
+const lv_font_t *ui_font_get_12(void)
+{
+    return s_font_12;
+}
+
+const lv_font_t *ui_font_get_16(void)
+{
+    return s_font_16;
+}
+
+const lv_font_t *ui_font_get_20(void)
+{
+    return s_font_20;
+}

@@ -21,6 +21,8 @@
 #include "w25q64_test.h"
 #include "littlefs_esp.h"
 #include "littlefs_test.h"
+#include "wifi_manager.h"
+#include "ui_font.h"
 
 #define LOG_TAG "main"
 #include "platform_log.h"
@@ -49,10 +51,19 @@
 static const littlefs_esp_config_t s_littlefs_config = {
     .base_path = "/littlefs",
     .partition_label = "littlefs",
-    .format_if_mount_failed = true,
+    .format_if_mount_failed = false,
 };
 #endif
 
+static void app_ui_init(void)
+{
+    if (!ui_font_init()) {
+        log_error("UI font initialization failed");
+        return;
+    }
+
+    home_ui_create();
+}
 
 void my_main()
 {
@@ -60,9 +71,12 @@ void my_main()
 
 #if ENABLE_LITTLEFS
     ESP_ERROR_CHECK(littlefs_esp_mount(&s_littlefs_config));
-    ESP_ERROR_CHECK(littlefs_esp_test());
-    ESP_ERROR_CHECK(littlefs_esp_speed_test());
+    //ESP_ERROR_CHECK(littlefs_esp_test());
+    //ESP_ERROR_CHECK(littlefs_esp_speed_test());
 #endif
+
+    ESP_ERROR_CHECK(wifi_manager_init());
+    log_info("Wi-Fi manager initialized");
 
     // W25Q64 自检完成后会释放软件 SPI 使用的 GPTimer。
     esp_err_t w25q64_result = w25q64_communication_test();
@@ -78,7 +92,7 @@ void my_main()
     log_info("environment sensor service started");
 
     log_info("LVGL initialization started");
-    lvgl_port_init(home_ui_create);
+    lvgl_port_init(app_ui_init);
     log_info("LVGL tick timer and handler task started");
 
     ESP_ERROR_CHECK(rgb_led_init());

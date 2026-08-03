@@ -16,6 +16,7 @@ set(EXTRA_COMPONENT_DIRS
     "${CMAKE_CURRENT_LIST_DIR}/components/services/environment_sensor"
     "${CMAKE_CURRENT_LIST_DIR}/components/services/system_time"
     "${CMAKE_CURRENT_LIST_DIR}/components/services/cpu_usage"
+    "${CMAKE_CURRENT_LIST_DIR}/components/services/wifi_manager"
     "${CMAKE_CURRENT_LIST_DIR}/components/adapters/lvgl_port"
     "${CMAKE_CURRENT_LIST_DIR}/components/diagnostics/w25q64_test"
     "${CMAKE_CURRENT_LIST_DIR}/components/diagnostics/littlefs_test"

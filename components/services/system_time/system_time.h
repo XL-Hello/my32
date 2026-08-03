@@ -12,6 +12,6 @@ esp_err_t system_time_init(void);
 /**
  * @brief 启动 SNTP 网络校时。
  *
- * 当前仅预留接口，尚未接入网络与 SNTP 客户端，实现会返回 ESP_ERR_NOT_SUPPORTED。
+ * 首次调用启动 SNTP，后续调用会重新发起同步请求。该函数不阻塞等待服务器响应。
  */
 esp_err_t system_time_sntp_start(void);
