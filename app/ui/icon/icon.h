@@ -5,12 +5,17 @@
 #include "lvgl/lvgl.h"
 
 /** LittleFS 中打包的界面 PNG 图标路径。 */
-#define UI_ICON_PATH_BACK        "R:/littlefs/png/back.png"
-#define UI_ICON_PATH_ACTIVITY    "R:/littlefs/png/activity.png"
-#define UI_ICON_PATH_HUMIDITY    "R:/littlefs/png/humidity.png"
-#define UI_ICON_PATH_SETTINGS    "R:/littlefs/png/seticon.png"
-#define UI_ICON_PATH_TEMPERATURE "R:/littlefs/png/thermometer.png"
-#define UI_ICON_PATH_WIFI        "R:/littlefs/png/wifi.png"
+#define UI_ICON_PATH_BACK                "R:/littlefs/png/back.png"             // 24*24
+#define UI_ICON_PATH_ACTIVITY            "R:/littlefs/png/activity.png"         // 24*24
+#define UI_ICON_PATH_CHEVRON_RIGHT       "R:/littlefs/png/chevron-right.png"    // 24*24
+#define UI_ICON_PATH_DEVICE              "R:/littlefs/png/device.png"           // 24*24
+#define UI_ICON_PATH_HUMIDITY            "R:/littlefs/png/humidity.png"         // 24*24
+#define UI_ICON_PATH_TEMPERATURE         "R:/littlefs/png/thermometer.png"      // 24*24
+#define UI_ICON_PATH_WIFI                "R:/littlefs/png/wifi.png"             // 24*24
+
+#define UI_ICON_PATH_INFO                "R:/littlefs/png/info_32.png"          // 32*32
+#define UI_ICON_PATH_SETTINGS            "R:/littlefs/png/settings.png"         // 32*32
+#define UI_ICON_PATH_CONTROL_CENTER_WIFI "R:/littlefs/png/wifi-32.png"          // 32*32
 
 /**
  * @brief 设置图标资源；资源不可读取时记录错误日志并清空图像对象。

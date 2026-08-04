@@ -1,4 +1,9 @@
  !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~°
+控制中心
+设备设置
+网络设置
+系统信息
+设备运行正常
 Wi-Fi 设置
 返回
 开/关
