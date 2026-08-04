@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1020" viewBox="0 0 1600 1020">
+  <title>04-Wi-Fi 设置开发尺寸标注</title>
+  <desc>完整标注 240×320 Wi-Fi 设置界面中每个可见控件、图标与文字规格，包含可滚动热点列表。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 8 4 0 8z" fill="#58D6B3"/></marker>
+    <style>
+      .title { fill:#F2FAF7; font:600 32px 'Noto Sans SC','Microsoft YaHei',sans-serif; }
+      .subtitle { fill:#9BB9B0; font:400 16px 'Noto Sans SC','Microsoft YaHei',sans-serif; }
+      .overline { fill:#58D6B3; font:600 14px 'Noto Sans SC','Microsoft YaHei',sans-serif; letter-spacing:1px; }
+      .head { fill:#DDF7EF; font:600 15px 'Noto Sans SC','Microsoft YaHei',sans-serif; }
+      .cell { fill:#D5E7E1; font:400 13px 'Noto Sans SC','Microsoft YaHei',sans-serif; }
+      .muted { fill:#87A9A0; font:400 12px 'Noto Sans SC','Microsoft YaHei',sans-serif; }
+      .small { fill:#A5C5BC; font:400 11px 'Noto Sans SC','Microsoft YaHei',sans-serif; }
+      .note { fill:#CDE3DC; font:400 13px 'Noto Sans SC','Microsoft YaHei',sans-serif; }
+      .tag { fill:#0E211E; font:700 12px 'Noto Sans SC','Microsoft YaHei',sans-serif; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1020" fill="#081412"/><rect x="0" y="0" width="1600" height="6" fill="#58D6B3"/>
+  <text x="60" y="62" class="overline">EMBEDDED UI · HANDOFF SHEET</text>
+  <text x="60" y="107" class="title">04 · Wi-Fi 设置 — 开发尺寸标注</text>
+  <text x="60" y="137" class="subtitle">基准画布 240 × 320 px ｜ 原点位于屏幕左上角 ｜ 坐标和尺寸均以 px 计 ｜ 字号为实际像素字号</text>
+
+  <!-- 左侧原稿与尺寸框 -->
+  <rect x="60" y="172" width="590" height="786" rx="14" fill="#0D211E" stroke="#234B44"/>
+  <text x="88" y="207" class="head">成品预览（2×）</text>
+  <text x="88" y="230" class="muted">C01、C02 为 46 px 高；虚线为点击热区；L01 为纵向滚动视窗。</text>
+  <image href="04-Wi-Fi设置.svg" x="130" y="270" width="480" height="640"/>
+  <rect x="130" y="270" width="480" height="640" fill="none" stroke="#58D6B3" stroke-width="2"/>
+
+  <!-- 画布总尺寸 -->
+  <line x1="130" y1="250" x2="610" y2="250" stroke="#58D6B3" stroke-width="1" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <line x1="130" y1="257" x2="130" y2="242" stroke="#58D6B3"/><line x1="610" y1="257" x2="610" y2="242" stroke="#58D6B3"/>
+  <rect x="325" y="238" width="90" height="22" rx="11" fill="#58D6B3"/><text x="343" y="254" class="tag">240 px</text>
+  <line x1="632" y1="270" x2="632" y2="910" stroke="#58D6B3" stroke-width="1" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <line x1="625" y1="270" x2="640" y2="270" stroke="#58D6B3"/><line x1="625" y1="910" x2="640" y2="910" stroke="#58D6B3"/>
+  <rect x="621" y="570" width="22" height="44" rx="11" fill="#58D6B3"/><text x="636" y="600" class="tag" transform="rotate(-90 636 600)">320 px</text>
+  <text x="130" y="936" class="small">(0,0)</text><text x="566" y="936" class="small">(240,320)</text>
+
+  <!-- 交互范围叠加：均按 2× 坐标 -->
+  <g fill="#58D6B3" fill-opacity=".06" stroke="#58D6B3" stroke-width="1.2" stroke-dasharray="5 4">
+    <rect x="146" y="286" width="80" height="80" rx="8"/>
+    <rect x="154" y="378" width="432" height="92" rx="14"/>
+    <rect x="154" y="516" width="432" height="92" rx="14"/>
+    <rect x="474" y="624" width="112" height="48" rx="10"/>
+    <rect x="154" y="690" width="432" height="200" rx="12"/>
+  </g>
+
+  <!-- 预览 ID 标签与引线 -->
+  <g>
+    <rect x="84" y="288" width="45" height="21" rx="4" fill="#58D6B3"/><text x="94" y="303" class="tag">H01</text><line x1="129" y1="299" x2="146" y2="307" stroke="#58D6B3"/>
+    <rect x="436" y="292" width="45" height="21" rx="4" fill="#58D6B3"/><text x="446" y="307" class="tag">H02</text><line x1="481" y1="303" x2="490" y2="324" stroke="#58D6B3"/>
+    <rect x="84" y="393" width="45" height="21" rx="4" fill="#58D6B3"/><text x="94" y="408" class="tag">C01</text><line x1="129" y1="404" x2="154" y2="404" stroke="#58D6B3"/>
+    <rect x="84" y="531" width="45" height="21" rx="4" fill="#58D6B3"/><text x="94" y="546" class="tag">C02</text><line x1="129" y1="542" x2="154" y2="542" stroke="#58D6B3"/>
+    <rect x="538" y="533" width="45" height="21" rx="4" fill="#58D6B3"/><text x="548" y="548" class="tag">B01</text>
+    <rect x="425" y="632" width="45" height="21" rx="4" fill="#58D6B3"/><text x="435" y="647" class="tag">A01</text><line x1="470" y1="642" x2="474" y2="642" stroke="#58D6B3"/>
+    <rect x="84" y="704" width="45" height="21" rx="4" fill="#58D6B3"/><text x="94" y="719" class="tag">L01</text><line x1="129" y1="715" x2="154" y2="715" stroke="#58D6B3"/>
+  </g>
+
+  <!-- 规格表 -->
+  <rect x="690" y="172" width="850" height="786" rx="14" fill="#0D211E" stroke="#234B44"/>
+  <text x="720" y="207" class="head">控件、文字、图标规格</text><text x="720" y="230" class="muted">文本坐标为文字外接框左上角；“命中”代表建议触摸热区。</text>
+  <rect x="714" y="252" width="802" height="34" rx="5" fill="#173431"/>
+  <text x="728" y="274" class="head">ID</text><text x="805" y="274" class="head">对象 / 文本</text><text x="1065" y="274" class="head">x, y</text><text x="1160" y="274" class="head">w × h</text><text x="1278" y="274" class="head">图标 / 字号</text><text x="1430" y="274" class="head">行为</text>
+  <g stroke="#23433F" stroke-width="1"><line x1="714" y1="335" x2="1516" y2="335"/><line x1="714" y1="384" x2="1516" y2="384"/><line x1="714" y1="433" x2="1516" y2="433"/><line x1="714" y1="482" x2="1516" y2="482"/><line x1="714" y1="531" x2="1516" y2="531"/><line x1="714" y1="580" x2="1516" y2="580"/><line x1="714" y1="629" x2="1516" y2="629"/><line x1="714" y1="678" x2="1516" y2="678"/><line x1="714" y1="727" x2="1516" y2="727"/><line x1="714" y1="776" x2="1516" y2="776"/><line x1="714" y1="825" x2="1516" y2="825"/></g>
+
+  <text x="728" y="310" class="cell">S00</text><text x="805" y="310" class="cell">屏幕背景</text><text x="1065" y="310" class="cell">0, 0</text><text x="1160" y="310" class="cell">240 × 320</text><text x="1278" y="310" class="cell">—</text><text x="1430" y="310" class="small">不可滚动</text>
+  <text x="728" y="359" class="cell">H01</text><text x="805" y="353" class="cell">返回命中区</text><text x="805" y="372" class="small">内置 back 图标：(16,16) 24×24</text><text x="1065" y="359" class="cell">8, 8</text><text x="1160" y="359" class="cell">40 × 40</text><text x="1278" y="359" class="cell">back 24×24</text><text x="1430" y="359" class="small">返回设置页</text>
+  <text x="728" y="408" class="cell">H02</text><text x="805" y="402" class="cell">页标题「Wi-Fi 设置」</text><text x="805" y="421" class="small">文字框 83×19</text><text x="1065" y="408" class="cell">54, 19</text><text x="1160" y="408" class="cell">83 × 19</text><text x="1278" y="408" class="cell">15 / 600</text><text x="1430" y="408" class="small">静态</text>
+  <text x="728" y="457" class="cell">C01</text><text x="805" y="451" class="cell">Wi-Fi 总开关卡片</text><text x="805" y="470" class="small">Wi-Fi (27,67) 20×20；标题 (58,61)，状态 (58,80)</text><text x="1065" y="457" class="cell">12, 54</text><text x="1160" y="457" class="cell">216 × 46</text><text x="1278" y="451" class="cell">Wi-Fi 20×20</text><text x="1278" y="470" class="small">标题 14/600；状态 9</text><text x="1430" y="457" class="small">开关状态</text>
+  <text x="728" y="506" class="cell">U01</text><text x="805" y="500" class="cell">Wi-Fi 开关</text><text x="805" y="519" class="small">显示 (180,67) 36×20；命中 (172,59) 52×36</text><text x="1065" y="506" class="cell">180, 67</text><text x="1160" y="506" class="cell">36 × 20</text><text x="1278" y="506" class="cell">滑块 Ø14</text><text x="1430" y="506" class="small">启用 / 停用</text>
+  <text x="728" y="555" class="cell">S01</text><text x="805" y="549" class="cell">区块标题「当前连接」</text><text x="805" y="568" class="small">文字框 55×14</text><text x="1065" y="555" class="cell">16, 104</text><text x="1160" y="555" class="cell">55 × 14</text><text x="1278" y="555" class="cell">11 / 600</text><text x="1430" y="555" class="small">静态</text>
+  <text x="728" y="604" class="cell">C02</text><text x="805" y="598" class="cell">已连接网络卡片</text><text x="805" y="617" class="small">Wi-Fi (27,136) 20×20；SSID (58,129)，详情 (58,148)</text><text x="1065" y="604" class="cell">12, 123</text><text x="1160" y="604" class="cell">216 × 46</text><text x="1278" y="598" class="cell">Wi-Fi 20×20</text><text x="1278" y="617" class="small">SSID 14/600；详情 9</text><text x="1430" y="604" class="small">打开网络详情</text>
+  <text x="728" y="653" class="cell">B01</text><text x="805" y="647" class="cell">状态文字「已连接」</text><text x="805" y="666" class="small">无徽标底板、无勾选图标</text><text x="1065" y="653" class="cell">184, 133</text><text x="1160" y="653" class="cell">32 × 12</text><text x="1278" y="653" class="cell">9 / 600</text><text x="1430" y="653" class="small">随连接状态变更</text>
+  <text x="728" y="702" class="cell">S02 / A01</text><text x="805" y="696" class="cell">「可用网络」与扫描操作区</text><text x="805" y="715" class="small">标题 (16,181)；A01 图标 (176,181) 16×16，文字 (197,182)</text><text x="1065" y="702" class="cell">172, 177</text><text x="1160" y="702" class="cell">56 × 24</text><text x="1278" y="696" class="cell">refresh 16×16</text><text x="1278" y="715" class="small">扫描 11/600；Y 中心 189</text><text x="1430" y="702" class="small">刷新热点列表</text>
+  <text x="728" y="751" class="cell">L01</text><text x="805" y="745" class="cell">可纵向滚动的热点列表视窗</text><text x="805" y="764" class="small">内容高 120；滚动条轨道 (222,218) 2×84，滑块 2×34</text><text x="1065" y="751" class="cell">12, 210</text><text x="1160" y="751" class="cell">216 × 100</text><text x="1278" y="751" class="cell">圆角 7</text><text x="1430" y="751" class="small">纵向滑动</text>
+  <text x="728" y="800" class="cell">N01</text><text x="805" y="794" class="cell">受保护网络 Home_5G</text><text x="805" y="813" class="small">SSID (24,213)；副文 (24,232)；lock (163,222)；Wi-Fi (192,218)</text><text x="1065" y="800" class="cell">12, 210</text><text x="1160" y="800" class="cell">216 × 40</text><text x="1278" y="794" class="cell">lock 16；Wi-Fi 20</text><text x="1278" y="813" class="small">SSID 13/500；副文 8</text><text x="1430" y="800" class="small">弹出密码输入</text>
+  <text x="728" y="849" class="cell">N02 / N03</text><text x="805" y="843" class="cell">Guest 与被裁切的 Studio_2.4G</text><text x="805" y="862" class="small">N02: (12,250) 216×40；N03: (12,290) 216×40，视窗仅露出顶部 20 px</text><text x="1065" y="849" class="cell">12, 250</text><text x="1160" y="849" class="cell">216 × 40</text><text x="1278" y="843" class="cell">Wi-Fi 20</text><text x="1278" y="862" class="small">SSID 13/500；副文 8</text><text x="1430" y="849" class="small">N02 直接连接；继续滑动</text>
+
+  <rect x="714" y="880" width="802" height="54" rx="8" fill="#122B27"/>
+  <text x="732" y="903" class="note">资源：back.svg、lock.svg、refresh.svg、wifi-signal-strong.svg、wifi-signal-medium.svg、wifi-signal-low.svg。</text>
+  <text x="732" y="924" class="note">全部为 24×24、2 px 左右描边、currentColor SVG；同名透明 PNG 已输出，嵌入式可按 #58D6B3 / #F2FAF7 / #9BB9B0 重着色。</text>
+  <text x="60" y="990" class="small">色板：背景 #10201F ｜ 卡片 #19302E ｜ 主交互 #58D6B3 ｜ 主文字 #F2FAF7 ｜ 次文字 #9BB9B0 ｜ 卡片圆角 7 px</text>
+</svg>

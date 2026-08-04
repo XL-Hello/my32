@@ -6,6 +6,7 @@
 #include "icon.h"
 #include "lvgl/lvgl.h"
 #include "ui_font.h"
+#include "wifi_settings_ui.h"
 
 #define CONTROL_CENTER_HEADER_HEIGHT 61
 #define CONTROL_CENTER_HEADER_BUTTON_SIZE 24
@@ -32,12 +33,19 @@
 typedef struct {
     const char *icon_path;
     const char *title;
+    lv_event_cb_t event_callback;
 } controlcenter_ui_menu_item_t;
 
+static void controlcenter_ui_open_wifi_settings(lv_event_t *event)
+{
+    (void)event;
+    wifi_settings_ui_create_from_control_center();
+}
+
 static const controlcenter_ui_menu_item_t s_menu_items[] = {
-    {UI_ICON_PATH_SETTINGS, "设备设置"},
-    {UI_ICON_PATH_CONTROL_CENTER_WIFI, "网络设置"},
-    {UI_ICON_PATH_INFO, "系统信息"},
+    {UI_ICON_PATH_SETTINGS, "设备设置", NULL},
+    {UI_ICON_PATH_CONTROL_CENTER_WIFI, "网络设置", controlcenter_ui_open_wifi_settings},
+    {UI_ICON_PATH_INFO, "系统信息", NULL},
 };
 
 static void controlcenter_ui_back_home(lv_event_t *event)
@@ -117,6 +125,10 @@ static void controlcenter_ui_create_menu_item(lv_obj_t *parent, lv_coord_t y_pos
     lv_obj_set_style_radius(card, 5, LV_PART_MAIN);
     lv_obj_set_style_pad_all(card, 0, LV_PART_MAIN);
     lv_obj_clear_flag(card, LV_OBJ_FLAG_SCROLLABLE);
+    if (item->event_callback != NULL) {
+        lv_obj_add_flag(card, LV_OBJ_FLAG_CLICKABLE);
+        lv_obj_add_event_cb(card, item->event_callback, LV_EVENT_CLICKED, NULL);
+    }
 
     lv_obj_t *icon_area = lv_obj_create(card);
     /* 容器固定 48×48，内部 PNG 按其原始尺寸（当前为 32×32）居中绘制。 */

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "controlcenter_ui.h"
 #include "icon.h"
 #include "home_ui.h"
 #include "lvgl/lvgl.h"
@@ -14,6 +15,11 @@
 #define WIFI_SETTINGS_MAX_VISIBLE_APS 10
 #define WIFI_SETTINGS_BACK_BUTTON_SIZE 36
 
+typedef enum {
+    WIFI_SETTINGS_UI_BACK_TO_SETTINGS,
+    WIFI_SETTINGS_UI_BACK_TO_CONTROL_CENTER,
+} wifi_settings_ui_back_destination_t;
+
 static lv_obj_t *s_status_label;
 static lv_obj_t *s_network_list;
 static lv_obj_t *s_selected_label;
@@ -24,6 +30,7 @@ static wifi_manager_ap_info_t s_scan_results[WIFI_SETTINGS_MAX_VISIBLE_APS];
 static size_t s_scan_result_count;
 static bool s_waiting_for_scan;
 static char s_selected_ssid[WIFI_MANAGER_SSID_MAX_LEN + 1];
+static wifi_settings_ui_back_destination_t s_back_destination = WIFI_SETTINGS_UI_BACK_TO_SETTINGS;
 
 static void wifi_settings_ui_delete_keyboard(void)
 {
@@ -167,7 +174,11 @@ static void wifi_settings_ui_back_event(lv_event_t *event)
         s_refresh_timer = NULL;
     }
     wifi_settings_ui_delete_keyboard();
-    settings_ui_create();
+    if (s_back_destination == WIFI_SETTINGS_UI_BACK_TO_CONTROL_CENTER) {
+        controlcenter_ui_create();
+    } else {
+        settings_ui_create();
+    }
 }
 
 static lv_obj_t *wifi_settings_ui_create_button(lv_obj_t *parent, const char *text,
@@ -202,7 +213,7 @@ static void wifi_settings_ui_create_back_button(lv_obj_t *parent)
     lv_obj_clear_flag(image, LV_OBJ_FLAG_CLICKABLE);
 }
 
-void wifi_settings_ui_create(void)
+static void wifi_settings_ui_create_page(void)
 {
     if (s_refresh_timer != NULL) {
         lv_timer_del(s_refresh_timer);
@@ -273,4 +284,16 @@ void wifi_settings_ui_create(void)
     s_selected_ssid[0] = '\0';
     s_refresh_timer = lv_timer_create(wifi_settings_ui_refresh, WIFI_SETTINGS_REFRESH_PERIOD_MS, NULL);
     wifi_settings_ui_refresh(NULL);
+}
+
+void wifi_settings_ui_create(void)
+{
+    s_back_destination = WIFI_SETTINGS_UI_BACK_TO_SETTINGS;
+    wifi_settings_ui_create_page();
+}
+
+void wifi_settings_ui_create_from_control_center(void)
+{
+    s_back_destination = WIFI_SETTINGS_UI_BACK_TO_CONTROL_CENTER;
+    wifi_settings_ui_create_page();
 }
