@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1020" viewBox="0 0 1600 1020">
+  <title>06-相册浏览页开发尺寸标注</title>
+  <desc>相册浏览页面的返回、图片视窗、左右切换手势和页码组件规格。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 8 4 0 8z" fill="#58D6B3"/></marker>
+    <style>
+      .title{fill:#F2FAF7;font:600 32px 'Noto Sans SC','Microsoft YaHei',sans-serif}.subtitle{fill:#9BB9B0;font:400 16px 'Noto Sans SC','Microsoft YaHei',sans-serif}.overline{fill:#58D6B3;font:600 14px 'Noto Sans SC','Microsoft YaHei',sans-serif;letter-spacing:1px}.head{fill:#DDF7EF;font:600 15px 'Noto Sans SC','Microsoft YaHei',sans-serif}.cell{fill:#D5E7E1;font:400 13px 'Noto Sans SC','Microsoft YaHei',sans-serif}.muted{fill:#87A9A0;font:400 12px 'Noto Sans SC','Microsoft YaHei',sans-serif}.small{fill:#A5C5BC;font:400 11px 'Noto Sans SC','Microsoft YaHei',sans-serif}.note{fill:#CDE3DC;font:400 13px 'Noto Sans SC','Microsoft YaHei',sans-serif}.tag{fill:#0E211E;font:700 12px 'Noto Sans SC','Microsoft YaHei',sans-serif}
+    </style>
+  </defs>
+  <rect width="1600" height="1020" fill="#081412"/><rect width="1600" height="6" fill="#58D6B3"/>
+  <text x="60" y="62" class="overline">EMBEDDED UI · HANDOFF SHEET</text>
+  <text x="60" y="107" class="title">06 · 相册浏览页 — 开发尺寸标注</text>
+  <text x="60" y="137" class="subtitle">基准画布 240 × 320 px ｜ 原点位于屏幕左上角 ｜ 坐标和尺寸均以 px 计 ｜ 当前示例：第 2 张 / 共 3 张</text>
+
+  <rect x="60" y="172" width="590" height="786" rx="14" fill="#0D211E" stroke="#234B44"/>
+  <text x="88" y="207" class="head">成品预览（2×）</text><text x="88" y="230" class="muted">虚线为点击 / 横向手势热区；P01 内显示按索引读取的图片资源。</text>
+  <image href="06-相册.svg" x="130" y="270" width="480" height="640"/>
+  <!-- 标注稿直接引用当前照片，避免部分 SVG 渲染器忽略嵌套图片引用。 -->
+  <image href="photos/album-02.svg" x="154" y="382" width="432" height="384" preserveAspectRatio="none"/>
+  <rect x="154.5" y="382.5" width="431" height="383" rx="17" fill="none" stroke="#79DCC0" stroke-opacity=".36" stroke-width="2"/>
+  <rect x="170" y="398" width="106" height="40" rx="20" fill="#10201F" fill-opacity=".54"/>
+  <text x="223" y="426" text-anchor="middle" fill="#F2FAF7" font-family="Noto Sans SC, Microsoft YaHei, sans-serif" font-size="18" font-weight="600">日落海岸</text>
+  <circle cx="184" cy="574" r="28" fill="#10201F" fill-opacity=".45"/><path d="m190 564-10 10 10 10" fill="none" stroke="#F2FAF7" stroke-width="3.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="556" cy="574" r="28" fill="#10201F" fill-opacity=".45"/><path d="m550 564 10 10-10 10" fill="none" stroke="#F2FAF7" stroke-width="3.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="130" y="270" width="480" height="640" fill="none" stroke="#58D6B3" stroke-width="2"/>
+  <line x1="130" y1="250" x2="610" y2="250" stroke="#58D6B3" marker-start="url(#arrow)" marker-end="url(#arrow)"/><line x1="130" y1="257" x2="130" y2="242" stroke="#58D6B3"/><line x1="610" y1="257" x2="610" y2="242" stroke="#58D6B3"/><rect x="325" y="238" width="90" height="22" rx="11" fill="#58D6B3"/><text x="343" y="254" class="tag">240 px</text>
+  <line x1="632" y1="270" x2="632" y2="910" stroke="#58D6B3" marker-start="url(#arrow)" marker-end="url(#arrow)"/><line x1="625" y1="270" x2="640" y2="270" stroke="#58D6B3"/><line x1="625" y1="910" x2="640" y2="910" stroke="#58D6B3"/><rect x="621" y="570" width="22" height="44" rx="11" fill="#58D6B3"/><text x="636" y="600" class="tag" transform="rotate(-90 636 600)">320 px</text>
+  <text x="130" y="936" class="small">(0,0)</text><text x="566" y="936" class="small">(240,320)</text>
+  <g fill="#58D6B3" fill-opacity=".07" stroke="#58D6B3" stroke-width="1.2" stroke-dasharray="5 4"><rect x="146" y="286" width="80" height="80" rx="8"/><rect x="154" y="382" width="432" height="384" rx="16"/><rect x="154" y="766" width="432" height="72" rx="10"/><rect x="314" y="824" width="112" height="50" rx="25"/></g>
+  <g><rect x="84" y="292" width="45" height="21" rx="4" fill="#58D6B3"/><text x="94" y="307" class="tag">H01</text><line x1="129" y1="303" x2="146" y2="303" stroke="#58D6B3"/><rect x="84" y="390" width="45" height="21" rx="4" fill="#58D6B3"/><text x="94" y="405" class="tag">P01</text><line x1="129" y1="401" x2="154" y2="401" stroke="#58D6B3"/><rect x="84" y="774" width="45" height="21" rx="4" fill="#58D6B3"/><text x="94" y="789" class="tag">G01</text><line x1="129" y1="784" x2="154" y2="784" stroke="#58D6B3"/><rect x="436" y="830" width="45" height="21" rx="4" fill="#58D6B3"/><text x="446" y="845" class="tag">I01</text></g>
+
+  <rect x="690" y="172" width="850" height="786" rx="14" fill="#0D211E" stroke="#234B44"/>
+  <text x="720" y="207" class="head">控件、文字、图标规格</text><text x="720" y="230" class="muted">手势区域以 P01 为主；两侧箭头只作提示，也可提供辅助点击操作。</text>
+  <rect x="714" y="252" width="802" height="34" rx="5" fill="#173431"/><text x="728" y="274" class="head">ID</text><text x="805" y="274" class="head">对象 / 文本</text><text x="1065" y="274" class="head">x, y</text><text x="1160" y="274" class="head">w × h</text><text x="1278" y="274" class="head">图标 / 字号</text><text x="1430" y="274" class="head">行为</text>
+  <g stroke="#23433F" stroke-width="1"><line x1="714" y1="357" x2="1516" y2="357"/><line x1="714" y1="428" x2="1516" y2="428"/><line x1="714" y1="499" x2="1516" y2="499"/><line x1="714" y1="570" x2="1516" y2="570"/><line x1="714" y1="641" x2="1516" y2="641"/><line x1="714" y1="712" x2="1516" y2="712"/><line x1="714" y1="783" x2="1516" y2="783"/></g>
+  <text x="728" y="316" class="cell">S00</text><text x="805" y="316" class="cell">屏幕背景</text><text x="1065" y="316" class="cell">0, 0</text><text x="1160" y="316" class="cell">240 × 320</text><text x="1278" y="316" class="cell">—</text><text x="1430" y="316" class="small">不可滚动</text>
+  <text x="728" y="387" class="cell">H01</text><text x="805" y="381" class="cell">返回命中区</text><text x="805" y="400" class="small">内置 back 图标：(16,16) 24×24；页面标题居中</text><text x="1065" y="387" class="cell">8, 8</text><text x="1160" y="387" class="cell">40 × 40</text><text x="1278" y="387" class="cell">back 24×24</text><text x="1430" y="387" class="small">返回相册功能页</text>
+  <text x="728" y="458" class="cell">H02</text><text x="805" y="452" class="cell">功能说明「相册」</text><text x="805" y="471" class="small">文字外接框约 32×19，水平居中</text><text x="1065" y="458" class="cell">104, 18</text><text x="1160" y="458" class="cell">32 × 19</text><text x="1278" y="458" class="cell">16 / 600</text><text x="1430" y="458" class="small">静态标题</text>
+  <text x="728" y="529" class="cell">P01</text><text x="805" y="523" class="cell">图片显示视窗</text><text x="805" y="542" class="small">圆角 9；照片资源等比裁切填充。当前：photos/album-02.svg</text><text x="1065" y="529" class="cell">12, 56</text><text x="1160" y="529" class="cell">216 × 192</text><text x="1278" y="529" class="cell">圆角 9</text><text x="1430" y="529" class="small">按 index 加载</text>
+  <text x="728" y="600" class="cell">G01</text><text x="805" y="594" class="cell">图片横向手势区</text><text x="805" y="613" class="small">左滑显示 index+1；右滑显示 index-1；边界不循环</text><text x="1065" y="600" class="cell">12, 56</text><text x="1160" y="600" class="cell">216 × 192</text><text x="1278" y="600" class="cell">阈值 ≥ 24 px</text><text x="1430" y="600" class="small">切换图片</text>
+  <text x="728" y="671" class="cell">B01 / B02</text><text x="805" y="665" class="cell">前一张 / 后一张提示</text><text x="805" y="684" class="small">圆形底座 Ø28；箭头可选，实际手势仍覆盖整个 P01</text><text x="1065" y="671" class="cell">13, 138 / 199, 138</text><text x="1160" y="671" class="cell">28 × 28</text><text x="1278" y="671" class="cell">chevron 24×24</text><text x="1430" y="671" class="small">辅助切换</text>
+  <text x="728" y="742" class="cell">I01</text><text x="805" y="736" class="cell">当前索引 / 总数</text><text x="805" y="755" class="small">底板圆角 12.5；文字「2 / 3」为当前显示状态</text><text x="1065" y="742" class="cell">92, 281</text><text x="1160" y="742" class="cell">56 × 25</text><text x="1278" y="742" class="cell">12 / 600</text><text x="1430" y="742" class="small">随切换更新</text>
+  <rect x="714" y="824" width="802" height="86" rx="8" fill="#122B27"/><text x="732" y="849" class="note">图片资源：photos/album-01.svg、album-02.svg、album-03.svg，均为 216×192。</text><text x="732" y="873" class="note">导出 PNG 后可按同名索引加入 LittleFS；尺寸与 P01 完全一致，无需运行时缩放。</text><text x="732" y="897" class="note">切换时同时更新 P01 图片、左上角图片名称和 I01 文本；返回控件始终保持可点击。</text>
+  <text x="60" y="990" class="small">实现建议：在 P01 监听 LV_EVENT_GESTURE；通过手势向量区分左 / 右滑动，并在索引边界禁用相应辅助箭头。</text>
+</svg>

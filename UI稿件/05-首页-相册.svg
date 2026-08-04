@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="320" viewBox="0 0 240 320">
+  <title>05-首页相册功能页</title>
+  <desc>从首页右向左滑动后显示的相册功能入口，点击相册图标进入相册浏览页。</desc>
+  <defs>
+    <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#79DCC0"/><stop offset="1" stop-color="#5FC5AA"/></linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="6"/></filter>
+    <g id="album" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5.5" width="26" height="23" rx="3.5"/><circle cx="13" cy="13" r="2.2"/><path d="m7.5 25 7.2-7.2 4.8 4.6 4.2-4.1 5.8 5.3"/></g>
+    <g id="wifi" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M3.7 9.4a11.7 11.7 0 0 1 16.6 0"/><path d="M6.8 12.5a7.25 7.25 0 0 1 10.4 0"/><path d="M9.9 15.6a3.15 3.15 0 0 1 4.2 0"/><path d="M12 19.1h.01" stroke-width="2.6"/></g>
+    <g id="swipe" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M17 12H7m4-4-4 4 4 4M7 12h10m-4-4 4 4-4 4"/></g>
+  </defs>
+  <rect width="240" height="320" fill="#10201F"/>
+  <ellipse cx="180" cy="159" rx="85" ry="83" fill="#1A5146" opacity=".13" filter="url(#glow)"/>
+  <ellipse cx="54" cy="294" rx="71" ry="29" fill="#1D4F46" opacity=".12" filter="url(#glow)"/>
+
+  <!-- 保留首页状态栏样式 -->
+  <rect x="16" y="19" width="208" height="22" rx="11" fill="#19302E" stroke="#35675D" stroke-width="1"/>
+  <path d="M27 20h163v20H27a10 10 0 0 1-10-10 10 10 0 0 1 10-10Z" fill="url(#bar)"/>
+  <g color="#F2FAF7"><use href="#wifi" x="196" y="18" width="24" height="24"/></g>
+
+  <text x="120" y="105" text-anchor="middle" fill="#F2FAF7" font-family="Noto Sans SC, Microsoft YaHei, sans-serif" font-size="47" font-weight="300" letter-spacing="1">10:52</text>
+  <!-- A01：相册入口；整块区域可点击 -->
+  <circle cx="120" cy="174" r="38" fill="#173430" stroke="#356E62" stroke-width="1"/>
+  <circle cx="120" cy="174" r="29" fill="#1C4B43" opacity=".82"/>
+  <g color="#65DBB9"><use href="#album" x="99" y="153" width="42" height="42"/></g>
+  <text x="120" y="232" text-anchor="middle" fill="#F2FAF7" font-family="Noto Sans SC, Microsoft YaHei, sans-serif" font-size="17" font-weight="600">相册</text>
+  <text x="120" y="251" text-anchor="middle" fill="#9BB9B0" font-family="Noto Sans SC, Microsoft YaHei, sans-serif" font-size="10">查看精彩瞬间</text>
+
+  <!-- 首页分页与滑动提示；第二页为当前页 -->
+  <g color="#9BB9B0" opacity=".8"><use href="#swipe" x="22" y="276" width="24" height="24"/></g>
+  <rect x="100" y="286" width="7" height="3" rx="1.5" fill="#587870"/>
+  <rect x="112" y="286" width="16" height="3" rx="1.5" fill="#58D6B3"/>
+  <text x="218" y="293" text-anchor="end" fill="#78988F" font-family="Noto Sans SC, Microsoft YaHei, sans-serif" font-size="9">2 / 2</text>
+</svg>

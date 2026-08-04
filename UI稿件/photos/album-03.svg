@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="216" height="192" viewBox="0 0 216 192">
+  <title>相册示例图片三：清晨花园</title>
+  <defs>
+    <linearGradient id="garden" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#D4F5D6"/><stop offset=".52" stop-color="#86C99A"/><stop offset="1" stop-color="#2A695A"/></linearGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="11"/></filter>
+  </defs>
+  <rect width="216" height="192" rx="8" fill="url(#garden)"/>
+  <circle cx="169" cy="37" r="25" fill="#FFF8CE" opacity=".84"/>
+  <circle cx="52" cy="42" r="34" fill="#D4F8E1" opacity=".48" filter="url(#soft)"/>
+  <path d="M0 128c24-28 39-22 62-14 21 8 43-1 61-18 16-15 42-12 61 3 14 11 23 14 32 11v82H0Z" fill="#377C63"/>
+  <path d="M0 151c20-19 39-21 58-7 22 16 41 9 59-8 20-19 41-11 56 1 16 12 30 11 43 1v54H0Z" fill="#16483E"/>
+  <g fill="#F7D6A8"><circle cx="33" cy="134" r="5"/><circle cx="82" cy="147" r="4"/><circle cx="144" cy="132" r="5"/><circle cx="187" cy="148" r="4"/></g>
+  <g fill="#EEA6A2"><circle cx="50" cy="154" r="5"/><circle cx="113" cy="142" r="4"/><circle cx="169" cy="161" r="5"/></g>
+  <path d="M33 192v-53m49 53v-41m62 41v-59m43 59v-41" stroke="#255A4E" stroke-width="2"/>
+</svg>

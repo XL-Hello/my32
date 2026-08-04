@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1020" viewBox="0 0 1600 1020">
+  <title>05-首页相册功能页开发尺寸标注</title>
+  <desc>首页相册功能页的 240×320 像素布局、点击区域及滑动交互规格。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 8 4 0 8z" fill="#58D6B3"/></marker>
+    <style>
+      .title{fill:#F2FAF7;font:600 32px 'Noto Sans SC','Microsoft YaHei',sans-serif}.subtitle{fill:#9BB9B0;font:400 16px 'Noto Sans SC','Microsoft YaHei',sans-serif}.overline{fill:#58D6B3;font:600 14px 'Noto Sans SC','Microsoft YaHei',sans-serif;letter-spacing:1px}.head{fill:#DDF7EF;font:600 15px 'Noto Sans SC','Microsoft YaHei',sans-serif}.cell{fill:#D5E7E1;font:400 13px 'Noto Sans SC','Microsoft YaHei',sans-serif}.muted{fill:#87A9A0;font:400 12px 'Noto Sans SC','Microsoft YaHei',sans-serif}.small{fill:#A5C5BC;font:400 11px 'Noto Sans SC','Microsoft YaHei',sans-serif}.note{fill:#CDE3DC;font:400 13px 'Noto Sans SC','Microsoft YaHei',sans-serif}.tag{fill:#0E211E;font:700 12px 'Noto Sans SC','Microsoft YaHei',sans-serif}
+    </style>
+  </defs>
+  <rect width="1600" height="1020" fill="#081412"/><rect width="1600" height="6" fill="#58D6B3"/>
+  <text x="60" y="62" class="overline">EMBEDDED UI · HANDOFF SHEET</text>
+  <text x="60" y="107" class="title">05 · 首页相册功能页 — 开发尺寸标注</text>
+  <text x="60" y="137" class="subtitle">基准画布 240 × 320 px ｜ 原点位于屏幕左上角 ｜ 坐标和尺寸均以 px 计 ｜ 手势方向：从右向左进入此页</text>
+
+  <rect x="60" y="172" width="590" height="786" rx="14" fill="#0D211E" stroke="#234B44"/>
+  <text x="88" y="207" class="head">成品预览（2×）</text><text x="88" y="230" class="muted">虚线为建议触摸 / 手势热区；A01 点击后进入相册浏览页。</text>
+  <image href="05-首页-相册.svg" x="130" y="270" width="480" height="640"/>
+  <rect x="130" y="270" width="480" height="640" fill="none" stroke="#58D6B3" stroke-width="2"/>
+  <line x1="130" y1="250" x2="610" y2="250" stroke="#58D6B3" marker-start="url(#arrow)" marker-end="url(#arrow)"/><line x1="130" y1="257" x2="130" y2="242" stroke="#58D6B3"/><line x1="610" y1="257" x2="610" y2="242" stroke="#58D6B3"/><rect x="325" y="238" width="90" height="22" rx="11" fill="#58D6B3"/><text x="343" y="254" class="tag">240 px</text>
+  <line x1="632" y1="270" x2="632" y2="910" stroke="#58D6B3" marker-start="url(#arrow)" marker-end="url(#arrow)"/><line x1="625" y1="270" x2="640" y2="270" stroke="#58D6B3"/><line x1="625" y1="910" x2="640" y2="910" stroke="#58D6B3"/><rect x="621" y="570" width="22" height="44" rx="11" fill="#58D6B3"/><text x="636" y="600" class="tag" transform="rotate(-90 636 600)">320 px</text>
+  <text x="130" y="936" class="small">(0,0)</text><text x="566" y="936" class="small">(240,320)</text>
+  <g fill="#58D6B3" fill-opacity=".07" stroke="#58D6B3" stroke-width="1.2" stroke-dasharray="5 4"><rect x="162" y="308" width="416" height="44" rx="20"/><rect x="282" y="530" width="176" height="244" rx="20"/><rect x="154" y="806" width="432" height="72" rx="12"/></g>
+  <g><rect x="84" y="314" width="45" height="21" rx="4" fill="#58D6B3"/><text x="94" y="329" class="tag">H01</text><line x1="129" y1="325" x2="162" y2="325" stroke="#58D6B3"/><rect x="84" y="538" width="45" height="21" rx="4" fill="#58D6B3"/><text x="94" y="553" class="tag">A01</text><line x1="129" y1="549" x2="282" y2="549" stroke="#58D6B3"/><rect x="84" y="814" width="45" height="21" rx="4" fill="#58D6B3"/><text x="94" y="829" class="tag">G01</text><line x1="129" y1="824" x2="154" y2="824" stroke="#58D6B3"/><rect x="489" y="850" width="45" height="21" rx="4" fill="#58D6B3"/><text x="499" y="865" class="tag">I01</text></g>
+
+  <rect x="690" y="172" width="850" height="786" rx="14" fill="#0D211E" stroke="#234B44"/>
+  <text x="720" y="207" class="head">控件、文字、图标规格</text><text x="720" y="230" class="muted">文字坐标为外接框左上角；命中区可以大于可见区域，便于嵌入式触控。</text>
+  <rect x="714" y="252" width="802" height="34" rx="5" fill="#173431"/><text x="728" y="274" class="head">ID</text><text x="805" y="274" class="head">对象 / 文本</text><text x="1065" y="274" class="head">x, y</text><text x="1160" y="274" class="head">w × h</text><text x="1278" y="274" class="head">图标 / 字号</text><text x="1430" y="274" class="head">行为</text>
+  <g stroke="#23433F" stroke-width="1"><line x1="714" y1="357" x2="1516" y2="357"/><line x1="714" y1="428" x2="1516" y2="428"/><line x1="714" y1="499" x2="1516" y2="499"/><line x1="714" y1="570" x2="1516" y2="570"/><line x1="714" y1="641" x2="1516" y2="641"/><line x1="714" y1="712" x2="1516" y2="712"/><line x1="714" y1="783" x2="1516" y2="783"/></g>
+  <text x="728" y="316" class="cell">S00</text><text x="805" y="316" class="cell">屏幕背景</text><text x="1065" y="316" class="cell">0, 0</text><text x="1160" y="316" class="cell">240 × 320</text><text x="1278" y="316" class="cell">—</text><text x="1430" y="316" class="small">不可滚动</text>
+  <text x="728" y="387" class="cell">H01</text><text x="805" y="381" class="cell">首页状态栏</text><text x="805" y="400" class="small">填充轨道 174×20；Wi-Fi 图标 (196,18) 24×24</text><text x="1065" y="387" class="cell">16, 19</text><text x="1160" y="387" class="cell">208 × 22</text><text x="1278" y="387" class="cell">Wi-Fi 24×24</text><text x="1430" y="387" class="small">延续首页状态</text>
+  <text x="728" y="458" class="cell">T01</text><text x="805" y="452" class="cell">时间「10:52」</text><text x="805" y="471" class="small">水平居中，字距 1 px</text><text x="1065" y="458" class="cell">55, 62</text><text x="1160" y="458" class="cell">130 × 57</text><text x="1278" y="458" class="cell">47 / 300</text><text x="1430" y="458" class="small">复用首页时钟</text>
+  <text x="728" y="529" class="cell">A01</text><text x="805" y="523" class="cell">相册入口</text><text x="805" y="542" class="small">可见圆形：中心 (120,174)，Ø76；命中范围含标题与副文</text><text x="1065" y="529" class="cell">76, 130</text><text x="1160" y="529" class="cell">88 × 122</text><text x="1278" y="529" class="cell">album 42×42</text><text x="1430" y="529" class="small">点击进入相册</text>
+  <text x="728" y="600" class="cell">L01</text><text x="805" y="594" class="cell">主标题「相册」</text><text x="805" y="613" class="small">说明「查看精彩瞬间」位于 (75,241)，字号 10</text><text x="1065" y="600" class="cell">103, 215</text><text x="1160" y="600" class="cell">34 × 20</text><text x="1278" y="600" class="cell">17 / 600</text><text x="1430" y="600" class="small">静态</text>
+  <text x="728" y="671" class="cell">G01</text><text x="805" y="665" class="cell">横向分页手势区</text><text x="805" y="684" class="small">视觉提示 icon：(22,276) 24×24；滑动不会触发 A01 点击</text><text x="1065" y="671" class="cell">12, 268</text><text x="1160" y="671" class="cell">216 × 36</text><text x="1278" y="671" class="cell">swipe 24×24</text><text x="1430" y="671" class="small">向右滑返回首页</text>
+  <text x="728" y="742" class="cell">I01</text><text x="805" y="736" class="cell">页码指示器</text><text x="805" y="755" class="small">非当前页段：100,286 7×3；当前页段：112,286 16×3</text><text x="1065" y="742" class="cell">100, 286</text><text x="1160" y="742" class="cell">28 × 3</text><text x="1278" y="742" class="cell">圆角 1.5</text><text x="1430" y="742" class="small">当前为第 2 页</text>
+  <rect x="714" y="824" width="802" height="86" rx="8" fill="#122B27"/><text x="732" y="849" class="note">资源：icons/album.svg（24×24，currentColor）；页面中按 42×42 显示。</text><text x="732" y="873" class="note">色板：背景 #10201F ｜ 图标和当前页 #58D6B3 ｜ 主文字 #F2FAF7 ｜ 次文字 #9BB9B0。</text><text x="732" y="897" class="note">导航：主页检测“从右向左”的横向手势后，切换至本页；点击 A01 打开 06-相册。</text>
+  <text x="60" y="990" class="small">实现建议：A01 采用独立可点击容器；分页横向手势与 A01 点击回调分离，避免触控竞争。</text>
+</svg>

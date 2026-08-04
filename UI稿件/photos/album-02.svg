@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="216" height="192" viewBox="0 0 216 192">
+  <title>相册示例图片二：日落海岸</title>
+  <defs>
+    <linearGradient id="sunset" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#F7C58A"/><stop offset=".46" stop-color="#DC8D72"/><stop offset="1" stop-color="#3B7169"/></linearGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#4E9A91"/><stop offset="1" stop-color="#153F3B"/></linearGradient>
+  </defs>
+  <rect width="216" height="192" rx="8" fill="url(#sunset)"/>
+  <circle cx="157" cy="67" r="23" fill="#FFF0C9" opacity=".94"/>
+  <path d="M0 102c28 8 54 2 81-2 23-3 49-1 72 5 21 5 43 7 63 1v86H0Z" fill="url(#sea)"/>
+  <path d="M1 112c28 10 59 10 91 2 26-6 51-5 81 4 15 4 28 5 42 2M0 133c28 5 50 3 78-4 35-9 70-4 103 4 13 3 25 4 35 2M0 155c32 7 59 1 88-5 28-6 59-2 91 6" fill="none" stroke="#A7E0CC" stroke-width="1.4" opacity=".7"/>
+  <path d="M0 139c15-6 24-2 37 6 18 11 33 13 49 4 17-9 34-10 49-1 16 10 30 10 48-1 15-8 24-9 33-5v50H0Z" fill="#173D38" opacity=".93"/>
+  <path d="m36 136 16-38 5 38m-12-17h15" stroke="#102B27" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M160 105c-6 17-2 33 8 43" fill="none" stroke="#E3C182" stroke-width="2" opacity=".75"/>
+</svg>

@@ -19,7 +19,8 @@ typedef struct {
 
 /**
  * 挂载 LittleFS 并注册 VFS。成功后可使用 fopen、fread、fwrite、fsync 和 fclose
- * 访问 base_path 下的文件。
+ * 访问 base_path 下的文件，也可使用 opendir、readdir、closedir、mkdir、rmdir 和
+ * rename 操作目录。
  */
 esp_err_t littlefs_esp_mount(const littlefs_esp_config_t *config);
 

@@ -1,8 +1,10 @@
 #include "littlefs_esp.h"
 
+#include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 
@@ -23,6 +25,12 @@ typedef struct {
     bool in_use;
     lfs_file_t file;
 } littlefs_file_descriptor_t;
+
+typedef struct {
+    DIR dir;
+    lfs_dir_t lfs_dir;
+    struct dirent entry;
+} littlefs_directory_t;
 
 typedef struct {
     bool mounted;
@@ -153,7 +161,8 @@ static const char *littlefs_path(const char *path)
     while (*path == '/') {
         ++path;
     }
-    return path;
+    /* ESP VFS 使用 "/" 表示挂载点根目录，LittleFS 不接受空路径。 */
+    return *path == '\0' ? "/" : path;
 }
 
 static int littlefs_open_flags(int flags)
@@ -423,14 +432,269 @@ static int littlefs_vfs_stat(void *arg, const char *path, struct stat *stat_buff
     return 0;
 }
 
-static int littlefs_vfs_unlink(void *arg, const char *path)
+static DIR *littlefs_vfs_opendir(void *arg, const char *path)
 {
+    if (path == NULL) {
+        errno = EINVAL;
+        return NULL;
+    }
+
+    littlefs_directory_t *directory = calloc(1, sizeof(*directory));
+    if (directory == NULL) {
+        errno = ENOMEM;
+        return NULL;
+    }
+
+    littlefs_context_t *context = arg;
+    if (!littlefs_lock(context)) {
+        free(directory);
+        return NULL;
+    }
+
+    int result = lfs_dir_open(&context->lfs, &directory->lfs_dir, littlefs_path(path));
+    if (result != LFS_ERR_OK) {
+        littlefs_set_errno(result);
+        littlefs_unlock(context);
+        free(directory);
+        return NULL;
+    }
+
+    littlefs_unlock(context);
+    return &directory->dir;
+}
+
+static int littlefs_vfs_readdir_r(void *arg, DIR *directory_stream,
+                                  struct dirent *entry, struct dirent **out_entry)
+{
+    if (directory_stream == NULL || entry == NULL || out_entry == NULL) {
+        if (out_entry != NULL) {
+            *out_entry = NULL;
+        }
+        errno = EINVAL;
+        return EINVAL;
+    }
+
+    *out_entry = NULL;
+    littlefs_context_t *context = arg;
+    littlefs_directory_t *directory = (littlefs_directory_t *)directory_stream;
+    if (!littlefs_lock(context)) {
+        return errno;
+    }
+
+    struct lfs_info info;
+    int result = lfs_dir_read(&context->lfs, &directory->lfs_dir, &info);
+    if (result < 0) {
+        littlefs_set_errno(result);
+        const int error = errno;
+        littlefs_unlock(context);
+        return error;
+    }
+    if (result == 0) {
+        littlefs_unlock(context);
+        return 0;
+    }
+
+    memset(entry, 0, sizeof(*entry));
+    entry->d_type = info.type == LFS_TYPE_DIR ? DT_DIR : DT_REG;
+    strncpy(entry->d_name, info.name, sizeof(entry->d_name) - 1);
+    entry->d_name[sizeof(entry->d_name) - 1] = '\0';
+    *out_entry = entry;
+    littlefs_unlock(context);
+    return 0;
+}
+
+static struct dirent *littlefs_vfs_readdir(void *arg, DIR *directory_stream)
+{
+    if (directory_stream == NULL) {
+        errno = EINVAL;
+        return NULL;
+    }
+
+    littlefs_directory_t *directory = (littlefs_directory_t *)directory_stream;
+    struct dirent *entry = NULL;
+    const int error = littlefs_vfs_readdir_r(arg, directory_stream, &directory->entry, &entry);
+    if (error != 0) {
+        errno = error;
+        return NULL;
+    }
+    return entry;
+}
+
+static long littlefs_vfs_telldir(void *arg, DIR *directory_stream)
+{
+    if (directory_stream == NULL) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    littlefs_context_t *context = arg;
+    littlefs_directory_t *directory = (littlefs_directory_t *)directory_stream;
+    if (!littlefs_lock(context)) {
+        return -1;
+    }
+
+    const lfs_soff_t offset = lfs_dir_tell(&context->lfs, &directory->lfs_dir);
+    if (offset < 0) {
+        littlefs_set_errno(offset);
+        littlefs_unlock(context);
+        return -1;
+    }
+
+    littlefs_unlock(context);
+    return offset;
+}
+
+static void littlefs_vfs_seekdir(void *arg, DIR *directory_stream, long offset)
+{
+    if (directory_stream == NULL || offset < 0) {
+        errno = EINVAL;
+        return;
+    }
+
+    littlefs_context_t *context = arg;
+    littlefs_directory_t *directory = (littlefs_directory_t *)directory_stream;
+    if (!littlefs_lock(context)) {
+        return;
+    }
+
+    int result = lfs_dir_seek(&context->lfs, &directory->lfs_dir, (lfs_off_t)offset);
+    if (result != LFS_ERR_OK) {
+        littlefs_set_errno(result);
+    }
+    littlefs_unlock(context);
+}
+
+static int littlefs_vfs_closedir(void *arg, DIR *directory_stream)
+{
+    if (directory_stream == NULL) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    littlefs_context_t *context = arg;
+    littlefs_directory_t *directory = (littlefs_directory_t *)directory_stream;
+    if (!littlefs_lock(context)) {
+        return -1;
+    }
+
+    int result = lfs_dir_close(&context->lfs, &directory->lfs_dir);
+    if (result != LFS_ERR_OK) {
+        littlefs_set_errno(result);
+    }
+    littlefs_unlock(context);
+    free(directory);
+    return result == LFS_ERR_OK ? 0 : -1;
+}
+
+static int littlefs_vfs_mkdir(void *arg, const char *path, mode_t mode)
+{
+    (void)mode;
+    if (path == NULL) {
+        errno = EINVAL;
+        return -1;
+    }
+
     littlefs_context_t *context = arg;
     if (!littlefs_lock(context)) {
         return -1;
     }
 
-    int result = lfs_remove(&context->lfs, littlefs_path(path));
+    int result = lfs_mkdir(&context->lfs, littlefs_path(path));
+    if (result != LFS_ERR_OK) {
+        littlefs_set_errno(result);
+        littlefs_unlock(context);
+        return -1;
+    }
+
+    littlefs_unlock(context);
+    return 0;
+}
+
+static int littlefs_vfs_rmdir(void *arg, const char *path)
+{
+    if (path == NULL) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    littlefs_context_t *context = arg;
+    if (!littlefs_lock(context)) {
+        return -1;
+    }
+
+    struct lfs_info info;
+    int result = lfs_stat(&context->lfs, littlefs_path(path), &info);
+    if (result != LFS_ERR_OK) {
+        littlefs_set_errno(result);
+        littlefs_unlock(context);
+        return -1;
+    }
+    if (info.type != LFS_TYPE_DIR) {
+        errno = ENOTDIR;
+        littlefs_unlock(context);
+        return -1;
+    }
+
+    result = lfs_remove(&context->lfs, littlefs_path(path));
+    if (result != LFS_ERR_OK) {
+        littlefs_set_errno(result);
+        littlefs_unlock(context);
+        return -1;
+    }
+
+    littlefs_unlock(context);
+    return 0;
+}
+
+static int littlefs_vfs_rename(void *arg, const char *source, const char *destination)
+{
+    if (source == NULL || destination == NULL) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    littlefs_context_t *context = arg;
+    if (!littlefs_lock(context)) {
+        return -1;
+    }
+
+    int result = lfs_rename(&context->lfs, littlefs_path(source), littlefs_path(destination));
+    if (result != LFS_ERR_OK) {
+        littlefs_set_errno(result);
+        littlefs_unlock(context);
+        return -1;
+    }
+
+    littlefs_unlock(context);
+    return 0;
+}
+
+static int littlefs_vfs_unlink(void *arg, const char *path)
+{
+    if (path == NULL) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    littlefs_context_t *context = arg;
+    if (!littlefs_lock(context)) {
+        return -1;
+    }
+
+    struct lfs_info info;
+    int result = lfs_stat(&context->lfs, littlefs_path(path), &info);
+    if (result != LFS_ERR_OK) {
+        littlefs_set_errno(result);
+        littlefs_unlock(context);
+        return -1;
+    }
+    if (info.type == LFS_TYPE_DIR) {
+        errno = EISDIR;
+        littlefs_unlock(context);
+        return -1;
+    }
+
+    result = lfs_remove(&context->lfs, littlefs_path(path));
     if (result != LFS_ERR_OK) {
         littlefs_set_errno(result);
         littlefs_unlock(context);
@@ -450,7 +714,16 @@ static const esp_vfs_t s_vfs = {
     .close_p = littlefs_vfs_close,
     .fstat_p = littlefs_vfs_fstat,
     .stat_p = littlefs_vfs_stat,
+    .rename_p = littlefs_vfs_rename,
     .unlink_p = littlefs_vfs_unlink,
+    .opendir_p = littlefs_vfs_opendir,
+    .readdir_p = littlefs_vfs_readdir,
+    .readdir_r_p = littlefs_vfs_readdir_r,
+    .telldir_p = littlefs_vfs_telldir,
+    .seekdir_p = littlefs_vfs_seekdir,
+    .closedir_p = littlefs_vfs_closedir,
+    .mkdir_p = littlefs_vfs_mkdir,
+    .rmdir_p = littlefs_vfs_rmdir,
     .fsync_p = littlefs_vfs_fsync,
 };
 

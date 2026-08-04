@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="320" viewBox="0 0 240 320">
+  <title>06-相册浏览页</title>
+  <desc>可左右滑动的相册浏览页，当前显示第 2 张，共 3 张。</desc>
+  <defs>
+    <linearGradient id="frame" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#20423D"/><stop offset="1" stop-color="#17302E"/></linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="6"/></filter>
+    <g id="back" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 12H6m5-5-5 5 5 5"/></g>
+    <g id="prev" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m14 7-5 5 5 5"/></g>
+    <g id="next" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m10 7 5 5-5 5"/></g>
+  </defs>
+  <rect width="240" height="320" fill="#10201F"/>
+  <ellipse cx="199" cy="126" rx="66" ry="96" fill="#1A4C43" opacity=".12" filter="url(#soft)"/>
+
+  <!-- H01：返回；H02：标题 -->
+  <g color="#58D6B3"><circle cx="28" cy="28" r="11.5" fill="#17312F" stroke="#39B99B" stroke-width="1"/><use href="#back" x="16" y="16"/></g>
+  <text x="120" y="33" text-anchor="middle" fill="#F2FAF7" font-family="Noto Sans SC, Microsoft YaHei, sans-serif" font-size="16" font-weight="600">相册</text>
+
+  <!-- P01：图片显示视窗，照片随左右滑动更换 -->
+  <rect x="12" y="56" width="216" height="192" rx="9" fill="url(#frame)" stroke="#37665E" stroke-width="1"/>
+  <image href="photos/album-02.svg" x="12" y="56" width="216" height="192" preserveAspectRatio="xMidYMid slice"/>
+  <rect x="12.5" y="56.5" width="215" height="191" rx="8.5" fill="none" stroke="#79DCC0" stroke-opacity=".36"/>
+  <rect x="20" y="64" width="53" height="20" rx="10" fill="#10201F" fill-opacity=".54"/>
+  <text x="46.5" y="78" text-anchor="middle" fill="#F2FAF7" font-family="Noto Sans SC, Microsoft YaHei, sans-serif" font-size="9" font-weight="600">日落海岸</text>
+
+  <!-- G01/G02：手势提示与可选点击热区 -->
+  <circle cx="27" cy="152" r="14" fill="#10201F" fill-opacity=".45"/>
+  <g color="#F2FAF7"><use href="#prev" x="15" y="140" width="24" height="24"/></g>
+  <circle cx="213" cy="152" r="14" fill="#10201F" fill-opacity=".45"/>
+  <g color="#F2FAF7"><use href="#next" x="201" y="140" width="24" height="24"/></g>
+  <text x="120" y="270" text-anchor="middle" fill="#9BB9B0" font-family="Noto Sans SC, Microsoft YaHei, sans-serif" font-size="10">左右滑动切换图片</text>
+
+  <!-- I01：当前页码 / 总数 -->
+  <rect x="92" y="281" width="56" height="25" rx="12.5" fill="#193631" stroke="#38665D" stroke-width=".8"/>
+  <text x="120" y="298" text-anchor="middle" fill="#F2FAF7" font-family="Noto Sans SC, Microsoft YaHei, sans-serif" font-size="12" font-weight="600">2 <tspan fill="#6E9389" font-weight="400">/</tspan> 3</text>
+</svg>

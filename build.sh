@@ -6,6 +6,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOCAL_IDF_PATH="${PROJECT_ROOT}/esp-idf"
 DEFAULT_SERIAL_PORT="${DEFAULT_SERIAL_PORT:-/dev/ttyACM0}"
 LITTLEFS_IMAGE_SOURCE_DIR="${PROJECT_ROOT}/app/ui/icon/png"
+ALBUM_PHOTO_SOURCE_DIR="${PROJECT_ROOT}/app/ui/home/sub_home/album/photo"
 LITTLEFS_FONT_SOURCE_FILE="${PROJECT_ROOT}/app/ui/front/Noto-Sans-SC-Bold/NotoSansSCMedium-4.ttf"
 LITTLEFS_FONT_RAW_SYMBOLS_FILE="${PROJECT_ROOT}/app/ui/front/list_raw.txt"
 LITTLEFS_FONT_SYMBOLS_FILE="${PROJECT_ROOT}/app/ui/front/list.txt"
@@ -126,6 +127,11 @@ build_littlefs_assets()
         return 1
     fi
 
+    if [[ ! -d "${ALBUM_PHOTO_SOURCE_DIR}" ]]; then
+        printf '错误: 未找到相册 PNG 源目录: %s\n' "${ALBUM_PHOTO_SOURCE_DIR}" >&2
+        return 1
+    fi
+
     if [[ ! -f "${LITTLEFS_FONT_SOURCE_FILE}" ]]; then
         printf '错误: 未找到字体源文件: %s\n' "${LITTLEFS_FONT_SOURCE_FILE}" >&2
         return 1
@@ -149,8 +155,18 @@ build_littlefs_assets()
     ensure_mklittlefs || return 1
     python3 "${LITTLEFS_FONT_LIST_GENERATOR}" || return 1
     rm -rf -- "${LITTLEFS_STAGE_DIR}" || return 1
-    mkdir -p "${LITTLEFS_STAGE_DIR}/fonts" "${LITTLEFS_STAGE_DIR}/png" || return 1
+    mkdir -p "${LITTLEFS_STAGE_DIR}/fonts" "${LITTLEFS_STAGE_DIR}/png" \
+             "${LITTLEFS_STAGE_DIR}/photo" || return 1
     cp -R "${LITTLEFS_IMAGE_SOURCE_DIR}/." "${LITTLEFS_STAGE_DIR}/png" || return 1
+
+    local photo_path
+    local photo_count=0
+    for photo_path in "${ALBUM_PHOTO_SOURCE_DIR}"/*.png; do
+        [[ -f "${photo_path}" ]] || continue
+        cp "${photo_path}" "${LITTLEFS_STAGE_DIR}/photo/" || return 1
+        ((photo_count += 1))
+    done
+    printf '已打包相册 PNG：%d 个\n' "${photo_count}"
 
     local font_size
     local font_symbols
