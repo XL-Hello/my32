@@ -155,7 +155,7 @@ build_littlefs_assets()
     local font_size
     local font_symbols
     font_symbols="$(<"${LITTLEFS_FONT_SYMBOLS_FILE}")"
-    for font_size in 12 16 20; do
+    for font_size in 8 9 11 12 13 14 15 16 20; do
         lv_font_conv --bpp 4 --size "${font_size}" \
             --font "${LITTLEFS_FONT_SOURCE_FILE}" \
             --symbols "${font_symbols}" \

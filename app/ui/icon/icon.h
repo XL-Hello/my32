@@ -12,6 +12,11 @@
 #define UI_ICON_PATH_HUMIDITY            "R:/littlefs/png/humidity.png"         // 24*24
 #define UI_ICON_PATH_TEMPERATURE         "R:/littlefs/png/thermometer.png"      // 24*24
 #define UI_ICON_PATH_WIFI                "R:/littlefs/png/wifi.png"             // 24*24
+#define UI_ICON_PATH_WIFI_SIGNAL_STRONG  "R:/littlefs/png/wifi-signal-strong.png" // 24*24
+#define UI_ICON_PATH_WIFI_SIGNAL_MEDIUM  "R:/littlefs/png/wifi-signal-medium.png" // 24*24
+#define UI_ICON_PATH_WIFI_SIGNAL_LOW     "R:/littlefs/png/wifi-signal-low.png"  // 24*24
+#define UI_ICON_PATH_REFRESH             "R:/littlefs/png/refresh.png"          // 24*24
+#define UI_ICON_PATH_LOCK                "R:/littlefs/png/lock.png"             // 24*24
 
 #define UI_ICON_PATH_INFO                "R:/littlefs/png/info_32.png"          // 32*32
 #define UI_ICON_PATH_SETTINGS            "R:/littlefs/png/settings.png"         // 32*32
