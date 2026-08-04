@@ -9,7 +9,7 @@
 #define LOG_TAG "touch"
 #include "platform_log.h"
 
-#define TOUCH_HOST SPI2_HOST
+#define TOUCH_HOST SPI3_HOST
 #define TOUCH_SPI_CLOCK_HZ (2 * 1000 * 1000)
 #define TOUCH_AXIS_SAMPLE_COUNT 5
 #define TOUCH_AXIS_MIN_VALID_SAMPLES 3
@@ -40,7 +40,7 @@ static esp_err_t touch_read_axis(uint8_t command, uint16_t *value)
     transaction.tx_data[1] = 0;
     transaction.tx_data[2] = 0;
 
-    /* 与 esp_lcd 的队列式 DMA 刷新使用同一事务模式，避免混用 polling SPI 事务。 */
+    /* 触摸独占 SPI3，总线事务不会等待 LCD 的 SPI2 DMA 刷新。 */
     esp_err_t err = spi_device_transmit(s_touch_device, &transaction);
     if (err != ESP_OK) {
         return err;
@@ -184,6 +184,20 @@ esp_err_t touch_init(void)
         return err;
     }
 
+    const spi_bus_config_t bus_config = {
+        .sclk_io_num = TOUCH_PIN_SCLK,
+        .mosi_io_num = TOUCH_PIN_MOSI,
+        .miso_io_num = TOUCH_PIN_MISO,
+        .quadwp_io_num = -1,
+        .quadhd_io_num = -1,
+        .max_transfer_sz = sizeof(uint8_t[3]),
+    };
+    err = spi_bus_initialize(TOUCH_HOST, &bus_config, SPI_DMA_DISABLED);
+    if (err != ESP_OK) {
+        log_error("Touch SPI bus init failed: %s", esp_err_to_name(err));
+        return err;
+    }
+
     const spi_device_interface_config_t device_config = {
         .clock_speed_hz = TOUCH_SPI_CLOCK_HZ,
         .mode = 0,
@@ -193,6 +207,7 @@ esp_err_t touch_init(void)
     err = spi_bus_add_device(TOUCH_HOST, &device_config, &s_touch_device);
     if (err != ESP_OK) {
         log_error("SPI device init failed: %s", esp_err_to_name(err));
+        spi_bus_free(TOUCH_HOST);
         return err;
     }
 
@@ -207,12 +222,15 @@ esp_err_t touch_init(void)
     if (err != ESP_OK) {
         spi_bus_remove_device(s_touch_device);
         s_touch_device = NULL;
+        spi_bus_free(TOUCH_HOST);
         log_error("HR2046 initial command failed: %s", esp_err_to_name(err));
         return err;
     }
 
-    log_info("HR2046 input initialized: SPI=%d CS=%d IRQ=%d mode=%d clock=%dHz, LVGL polling",
-             TOUCH_HOST, TOUCH_PIN_CS, TOUCH_PIN_IRQ, device_config.mode,
+    log_info("HR2046 input initialized: SPI=%d SCLK=%d MOSI=%d MISO=%d CS=%d IRQ=%d "
+             "mode=%d clock=%dHz, LVGL polling",
+             TOUCH_HOST, TOUCH_PIN_SCLK, TOUCH_PIN_MOSI, TOUCH_PIN_MISO,
+             TOUCH_PIN_CS, TOUCH_PIN_IRQ, device_config.mode,
              TOUCH_SPI_CLOCK_HZ);
     return ESP_OK;
 }

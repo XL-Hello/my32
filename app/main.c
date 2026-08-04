@@ -28,8 +28,8 @@
 #include "platform_log.h"
 
 /**************************************功能配置与说明区******************************************/
-#define ENABLE_ILI9341_LCD              1  // [ILI9341 LCD+彩色液晶显示屏][使用 ESP-IDF SPI2 驱动][占用 SPI2_HOST、GPIO5(MISO)、GPIO6(SCLK)、GPIO7(MOSI)、GPIO15(DC)、GPIO16(RST)、GPIO17(CS)]
-#define ENABLE_LVGL                     1  // [LVGL+图形用户界面库][通过 LVGL 显示适配层调用 LCD 驱动][复用 ILI9341 LCD 的 SPI2 与 GPIO 资源，不额外占用硬件资源]
+#define ENABLE_ILI9341_LCD              1  // [ILI9341 LCD+彩色液晶显示屏][使用 ESP-IDF SPI2 驱动，40 MHz][GPIO8(MISO)、GPIO3(SCLK)、GPIO46(MOSI)、GPIO9(DC)、GPIO10(RST)、GPIO11(CS)]
+#define ENABLE_LVGL                     1  // [LVGL+图形用户界面库][通过 LVGL 显示适配层调用 LCD SPI2 驱动；HR2046 触摸使用独立 SPI3]
 #define ENABLE_CPU_FPS                  1  // [CPU 使用率与帧率监控][使用 FreeRTOS 任务状态 API 与 LVGL Tick Hook][占用少量 CPU 时间片]
 
 #define ENABLE_WS2812B_LED              1  // [WS2812B LED+可编程彩灯][使用 RMT 组件驱动][占用 GPIO48]

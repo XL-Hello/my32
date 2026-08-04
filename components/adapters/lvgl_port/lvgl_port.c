@@ -17,10 +17,22 @@
 #define LVGL_TICK_PERIOD_US 2000
 #define LVGL_TASK_STACK_SIZE 4096
 #define LVGL_TASK_PRIORITY 5
-#define UI_FRAME_PERIOD_MS 10
+#define LVGL_IDLE_FALLBACK_DELAY_MS 10
 
 static esp_timer_handle_t s_lvgl_tick_timer;
 static lvgl_port_ui_init_cb_t s_ui_init_callback;
+
+static TickType_t lvgl_delay_ms_to_ticks(uint32_t delay_ms)
+{
+    if (delay_ms == LV_NO_TIMER_READY) {
+        delay_ms = LVGL_IDLE_FALLBACK_DELAY_MS;
+    }
+
+    /* FreeRTOS 当前以 10 ms 为 tick；向上取整以免错过 LVGL 的下一个定时器。 */
+    const TickType_t delay_ticks =
+        (TickType_t)((delay_ms + portTICK_PERIOD_MS - 1U) / portTICK_PERIOD_MS);
+    return delay_ticks == 0 ? 1 : delay_ticks;
+}
 
 static void lvgl_tick_callback(void *arg)
 {
@@ -36,9 +48,10 @@ static void lvgl_task(void *arg)
         s_ui_init_callback();
     }
 
+    //每次 lv_timer_handler() 返回距下个 LVGL 定时器的建议等待时间，任务按该时间动态休眠；当无定时器或返回 0 时，会安全回退为至少一个 FreeRTOS tick，避免忙等或超长阻塞。
     while (true) {
-        lv_timer_handler();
-        vTaskDelay(pdMS_TO_TICKS(UI_FRAME_PERIOD_MS));
+        const uint32_t delay_ms = lv_timer_handler();
+        vTaskDelay(lvgl_delay_ms_to_ticks(delay_ms));
     }
 }
 

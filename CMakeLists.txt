@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 set(EXTRA_COMPONENT_DIRS
     "${CMAKE_CURRENT_LIST_DIR}/app"
+    "${CMAKE_CURRENT_LIST_DIR}/components/platform"
     "${CMAKE_CURRENT_LIST_DIR}/components/platform/platform_log"
     "${CMAKE_CURRENT_LIST_DIR}/components/hal/common/ringbuffer"
     "${CMAKE_CURRENT_LIST_DIR}/components/hal/littlefs_vfs"

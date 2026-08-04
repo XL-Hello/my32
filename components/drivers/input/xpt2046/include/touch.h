@@ -5,11 +5,20 @@
 
 #include "esp_err.h"
 
-/** 触摸控制器使用的独立 SPI 片选，低有效。 */
-#define TOUCH_PIN_CS 8
+/** 触摸控制器 SPI MISO（T_DO）。 */
+#define TOUCH_PIN_MISO 5
+
+/** 触摸控制器 SPI MOSI（T_IN / T_DIN）。 */
+#define TOUCH_PIN_MOSI 6
+
+/** 触摸控制器 SPI 时钟（T_CLK）。 */
+#define TOUCH_PIN_SCLK 15
+
+/** 触摸控制器 SPI 片选（T_CS），低有效。 */
+#define TOUCH_PIN_CS 7
 
 /** 触摸控制器的按下状态输入，通常低有效；由 LVGL 输入回调轮询。 */
-#define TOUCH_PIN_IRQ 18
+#define TOUCH_PIN_IRQ 4
 
 /** HR2046/XPT2046 兼容控制器的常用 12-bit 坐标读取命令。 */
 #define TOUCH_CMD_READ_X 0xD0
@@ -32,8 +41,8 @@ typedef struct {
 /**
  * @brief 初始化 HR2046 触摸设备。
  *
- * @note 必须在 lcd_init() 成功后调用；LCD 组件已初始化 SPI2 总线。
- *       坐标由调用方按需通过 touch_read_point() 读取；默认不创建原始坐标日志任务。
+ * @note 该函数初始化独立的 SPI3 总线。坐标由调用方按需通过 touch_read_point() 读取；
+ *       默认不创建原始坐标日志任务。
  */
 esp_err_t touch_init(void);
 

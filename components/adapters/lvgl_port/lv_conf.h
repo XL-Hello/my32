@@ -45,7 +45,10 @@
    内存设置
  *=========================*/
 
-/*使用 ESP-IDF 动态堆，避免为 PNG 解码预留的大型静态内存池挤占内部 DRAM。*/
+/*
+ * LVGL 对象、文本和图片解码的动态内存固定分配到 PSRAM；显示 DMA 双缓冲仍使用
+ * 内部 DRAM，避免 LCD 刷新受外部 RAM 带宽和缓存访问影响。
+ */
 #define LV_MEM_CUSTOM 1
 #if LV_MEM_CUSTOM == 0
     /*可供 `lv_mem_alloc()` 使用的内存大小，单位为字节（>= 2 kB）。*/
@@ -57,13 +60,13 @@
     #if LV_MEM_ADR == 0
         #undef LV_MEM_POOL_INCLUDE
         #undef LV_MEM_POOL_ALLOC
-    #endif
+#endif
 
 #else       /*LV_MEM_CUSTOM*/
-    #define LV_MEM_CUSTOM_INCLUDE <stdlib.h>   /*动态内存函数的头文件*/
-    #define LV_MEM_CUSTOM_ALLOC   malloc
-    #define LV_MEM_CUSTOM_FREE    free
-    #define LV_MEM_CUSTOM_REALLOC realloc
+    #define LV_MEM_CUSTOM_INCLUDE "platform.h"
+    #define LV_MEM_CUSTOM_ALLOC(size) ps_malloc(size)
+    #define LV_MEM_CUSTOM_FREE(ptr) free(ptr)
+    #define LV_MEM_CUSTOM_REALLOC(ptr, size) ps_realloc(ptr, size)
 #endif     /*LV_MEM_CUSTOM*/
 
 /*渲染和其他内部处理机制使用的中间内存缓冲区数量。

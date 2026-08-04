@@ -8,12 +8,12 @@
 #define LCD_H_RES 240
 #define LCD_V_RES 320
 
-#define LCD_PIN_MISO 5
-#define LCD_PIN_SCLK 6
-#define LCD_PIN_MOSI 7
-#define LCD_PIN_DC 15
-#define LCD_PIN_RST 16
-#define LCD_PIN_CS 17
+#define LCD_PIN_MISO 8
+#define LCD_PIN_SCLK 3
+#define LCD_PIN_MOSI 46
+#define LCD_PIN_DC 9
+#define LCD_PIN_RST 10
+#define LCD_PIN_CS 11
 
 /**
  * @brief LCD 显示方向。
