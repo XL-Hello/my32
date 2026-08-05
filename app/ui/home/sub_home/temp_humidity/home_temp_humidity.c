@@ -21,7 +21,8 @@
 #define HOME_TEMP_HUMIDITY_ACTIVITY_ROW_Y (HOME_TEMP_HUMIDITY_ACTIVITY_ICON_Y - 2)
 #define HOME_TEMP_HUMIDITY_METRIC_LABEL_X (HOME_TEMP_HUMIDITY_ICON_SIZE + 15)
 #define HOME_TEMP_HUMIDITY_PERFORMANCE_SECOND_LINE_Y 21
-#define HOME_TEMP_HUMIDITY_PERFORMANCE_VALUE_WIDTH 16
+#define HOME_TEMP_HUMIDITY_CPU_VALUE_WIDTH 34
+#define HOME_TEMP_HUMIDITY_FPS_VALUE_WIDTH 16
 
 #define HOME_TEMP_HUMIDITY_COLOR_CARD 0x19302E
 #define HOME_TEMP_HUMIDITY_COLOR_ACCENT 0x58D6B3
@@ -35,7 +36,8 @@ static lv_obj_t *s_status_label;
 static lv_obj_t *s_fps_value_label;
 static lv_obj_t *s_cpu_value_label;
 static uint32_t s_displayed_fps;
-static uint8_t s_displayed_cpu_usage;
+static uint8_t s_displayed_cpu0_usage;
+static uint8_t s_displayed_cpu1_usage;
 static lv_timer_t *s_refresh_timer;
 static lv_timer_t *s_performance_timer;
 
@@ -134,7 +136,7 @@ static void home_temp_humidity_create_activity_row(lv_obj_t *parent)
         row, "FPS:", LV_ALIGN_TOP_LEFT, HOME_TEMP_HUMIDITY_METRIC_LABEL_X,
         HOME_TEMP_HUMIDITY_PERFORMANCE_SECOND_LINE_Y);
 
-    s_cpu_value_label = home_temp_humidity_create_label(row, "00", LV_ALIGN_TOP_LEFT, 0, 0);
+    s_cpu_value_label = home_temp_humidity_create_label(row, "00/00", LV_ALIGN_TOP_LEFT, 0, 0);
     s_fps_value_label = home_temp_humidity_create_label(row, "00", LV_ALIGN_TOP_LEFT, 0, 0);
     lv_obj_t *performance_labels[] = {
         cpu_prefix,
@@ -147,8 +149,8 @@ static void home_temp_humidity_create_activity_row(lv_obj_t *parent)
         lv_obj_set_style_text_font(performance_labels[index], ui_font_get_12(), LV_PART_MAIN);
     }
 
-    lv_obj_set_width(s_cpu_value_label, HOME_TEMP_HUMIDITY_PERFORMANCE_VALUE_WIDTH);
-    lv_obj_set_width(s_fps_value_label, HOME_TEMP_HUMIDITY_PERFORMANCE_VALUE_WIDTH);
+    lv_obj_set_width(s_cpu_value_label, HOME_TEMP_HUMIDITY_CPU_VALUE_WIDTH);
+    lv_obj_set_width(s_fps_value_label, HOME_TEMP_HUMIDITY_FPS_VALUE_WIDTH);
     lv_label_set_long_mode(s_cpu_value_label, LV_LABEL_LONG_CLIP);
     lv_label_set_long_mode(s_fps_value_label, LV_LABEL_LONG_CLIP);
     lv_obj_set_style_text_align(s_cpu_value_label, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
@@ -202,10 +204,12 @@ static void home_temp_humidity_performance_refresh(lv_timer_t *timer)
         s_displayed_fps = fps;
     }
 
-    const uint8_t cpu_usage = cpu_usage_get_percent();
-    if (cpu_usage != s_displayed_cpu_usage) {
-        lv_label_set_text_fmt(s_cpu_value_label, "%02u", cpu_usage);
-        s_displayed_cpu_usage = cpu_usage;
+    const uint8_t cpu0_usage = cpu_usage_get_core_percent(0);
+    const uint8_t cpu1_usage = cpu_usage_get_core_percent(1);
+    if (cpu0_usage != s_displayed_cpu0_usage || cpu1_usage != s_displayed_cpu1_usage) {
+        lv_label_set_text_fmt(s_cpu_value_label, "%02u/%02u", cpu0_usage, cpu1_usage);
+        s_displayed_cpu0_usage = cpu0_usage;
+        s_displayed_cpu1_usage = cpu1_usage;
     }
 }
 
@@ -219,7 +223,6 @@ void home_temp_humidity_destroy(void)
         lv_timer_del(s_performance_timer);
         s_performance_timer = NULL;
     }
-
     s_temperature_label = NULL;
     s_humidity_label = NULL;
     s_status_label = NULL;
@@ -247,7 +250,8 @@ void home_temp_humidity_create_tab(lv_obj_t *parent)
     home_temp_humidity_create_activity_row(parent);
 
     s_displayed_fps = UINT32_MAX;
-    s_displayed_cpu_usage = UINT8_MAX;
+    s_displayed_cpu0_usage = UINT8_MAX;
+    s_displayed_cpu1_usage = UINT8_MAX;
     home_temp_humidity_refresh(NULL);
     home_temp_humidity_performance_refresh(NULL);
     s_refresh_timer = lv_timer_create(home_temp_humidity_refresh,

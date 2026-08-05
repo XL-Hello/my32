@@ -8,7 +8,8 @@
 #define CPU_USAGE_TASK_PRIORITY 2
 #define CPU_USAGE_MAX_TASKS 32
 
-static volatile uint8_t s_cpu_usage;
+static volatile uint8_t s_cpu_usage[portNUM_PROCESSORS];
+static volatile uint8_t s_total_cpu_usage;
 static uint32_t s_previous_total_runtime;
 static uint32_t s_previous_idle_runtime[portNUM_PROCESSORS];
 
@@ -40,20 +41,29 @@ static void cpu_usage_sample(void)
         const uint32_t total_runtime_delta = total_runtime - s_previous_total_runtime;
         uint64_t idle_runtime_delta = 0;
         for (UBaseType_t core_id = 0; core_id < portNUM_PROCESSORS; ++core_id) {
-            idle_runtime_delta += idle_runtime[core_id] - s_previous_idle_runtime[core_id];
+            uint32_t idle_runtime_delta_for_core =
+                idle_runtime[core_id] - s_previous_idle_runtime[core_id];
+            if (idle_runtime_delta_for_core > total_runtime_delta) {
+                idle_runtime_delta_for_core = total_runtime_delta;
+            }
+            idle_runtime_delta += idle_runtime_delta_for_core;
+            if (total_runtime_delta > 0) {
+                s_cpu_usage[core_id] = (uint8_t)(100U -
+                    (uint64_t)idle_runtime_delta_for_core * 100U / total_runtime_delta);
+            }
         }
 
         /*
          * total_runtime_delta 是 ESP Timer 的墙钟时间增量。两个核心可并行执行，
-         * 所以总可用运行时间为“墙钟时间 × 核数”；减去两个 Idle 任务时间后，
-         * 得到的是整机平均非空闲（忙碌）比例，而非某个特定任务或核心的占用。
+         * 每个核心的占用率由其 Idle 时间相对墙钟时间的比例计算；两个核心
+         * 的合并占用率仍可由各核心 Idle 时间之和计算得到。
          */
         const uint64_t available_runtime = (uint64_t)total_runtime_delta * portNUM_PROCESSORS;
         if (available_runtime > 0) {
             if (idle_runtime_delta > available_runtime) {
                 idle_runtime_delta = available_runtime;
             }
-            s_cpu_usage = (uint8_t)(100U - idle_runtime_delta * 100U / available_runtime);
+            s_total_cpu_usage = (uint8_t)(100U - idle_runtime_delta * 100U / available_runtime);
         }
     }
 
@@ -91,5 +101,13 @@ esp_err_t cpu_usage_init(void)
 
 uint8_t cpu_usage_get_percent(void)
 {
-    return s_cpu_usage;
+    return s_total_cpu_usage;
+}
+
+uint8_t cpu_usage_get_core_percent(uint32_t core_id)
+{
+    if (core_id >= portNUM_PROCESSORS) {
+        return 0;
+    }
+    return s_cpu_usage[core_id];
 }

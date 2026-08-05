@@ -23,6 +23,7 @@
 #include "littlefs_test.h"
 #include "wifi_manager.h"
 #include "ui_font.h"
+#include "system_monitor_ui.h"
 
 #define LOG_TAG "main"
 #include "platform_log.h"
@@ -31,6 +32,7 @@
 #define ENABLE_ILI9341_LCD              1  // [ILI9341 LCD+彩色液晶显示屏][使用 ESP-IDF SPI2 驱动，40 MHz][GPIO8(MISO)、GPIO3(SCLK)、GPIO46(MOSI)、GPIO9(DC)、GPIO10(RST)、GPIO11(CS)]
 #define ENABLE_LVGL                     1  // [LVGL+图形用户界面库][通过 LVGL 显示适配层调用 LCD SPI2 驱动；HR2046 触摸使用独立 SPI3]
 #define ENABLE_CPU_FPS                  1  // [CPU 使用率与帧率监控][使用 FreeRTOS 任务状态 API 与 LVGL Tick Hook][占用少量 CPU 时间片]
+#define ENABLE_GLOBAL_PERFORMANCE_MONITOR 0  // [全局性能悬浮窗][调试时设为 1，显示 CPU0/CPU1 与 FPS]
 
 #define ENABLE_WS2812B_LED              1  // [WS2812B LED+可编程彩灯][使用 RMT 组件驱动][占用 GPIO48]
 #define ENABLE_RGB_LED                  1  // [RGB LED+三色指示灯][使用 LEDC 组件 PWM 驱动][占用 GPIO12、GPIO13、GPIO14]
@@ -63,6 +65,9 @@ static void app_ui_init(void)
     }
 
     home_ui_create();
+#if ENABLE_GLOBAL_PERFORMANCE_MONITOR
+    system_monitor_ui_create();
+#endif
 }
 
 void my_main()

@@ -19,6 +19,7 @@ LITTLEFS_BLOCK_SIZE="4096"
 LITTLEFS_PAGE_SIZE="256"
 MKLITTLEFS_ARCHIVE="${PROJECT_ROOT}/tools/mklittlefs/x86_64-linux-gnu-mklittlefs-42acb97.tar.gz"
 MKLITTLEFS_BINARY="${PROJECT_ROOT}/build/mklittlefs"
+SIZE_REPORT_FILE="${PROJECT_ROOT}/build/firmware-size-report.txt"
 IDF_CHANGED=0
 
 show_usage()
@@ -27,10 +28,59 @@ show_usage()
     printf '%s\n' "  source ./build.sh env                    切换当前终端到项目内 esp-idf"
     printf '%s\n' "  ./build.sh build                         使用项目内 esp-idf 编译"
     printf '%s\n' "  ./build.sh build flash                   编译并打包 LittleFS 图标与字体资源"
+    printf '%s\n' "  ./build.sh menuconfig                    使用项目内 esp-idf 打开配置界面"
+    printf '%s\n' "  ./build.sh size                          输出固件内存、组件及源文件大小报告"
     printf '%s\n' "  ./build.sh clean               清理 bootloader 的 SDK/CMake 缓存"
     printf '%s\n' "  ./build.sh flash [串口]                  烧录应用，默认 ${DEFAULT_SERIAL_PORT}"
     printf '%s\n' "  ./build.sh flash flash [串口]            单独烧录 LittleFS 图标与字体资源，默认 ${DEFAULT_SERIAL_PORT}"
     printf '%s\n' "  可通过 DEFAULT_SERIAL_PORT 环境变量覆盖默认串口。"
+}
+
+generate_size_report()
+{
+    local report_dir="${PROJECT_ROOT}/build"
+    local temp_dir
+    local summary_file
+    local components_file
+    local files_file
+    local report_temp_file
+
+    mkdir -p "${report_dir}" || return 1
+    temp_dir="$(mktemp -d "${report_dir}/size-report.XXXXXX")" || return 1
+    summary_file="${temp_dir}/summary.txt"
+    components_file="${temp_dir}/components.txt"
+    files_file="${temp_dir}/files.txt"
+    report_temp_file="${temp_dir}/firmware-size-report.txt"
+
+    if ! idf.py size --format text --output-file "${summary_file}" ||
+       ! idf.py size-components --format text --output-file "${components_file}" ||
+       ! idf.py size-files --format text --output-file "${files_file}"; then
+        rm -rf -- "${temp_dir}"
+        return 1
+    fi
+
+    {
+        printf '%s\n' "固件大小报告"
+        printf '生成时间: %s\n' "$(date '+%Y-%m-%d %H:%M:%S %z')"
+        printf '%s\n\n' "项目: ${PROJECT_ROOT}"
+
+        printf '%s\n' "========== 1. 内存区占用（IRAM、DRAM/DIRAM、Flash） =========="
+        sed -n '1,$p' "${summary_file}"
+        printf '\n%s\n' "========== 2. 组件占用（size-components） =========="
+        sed -n '1,$p' "${components_file}"
+        printf '\n%s\n' "========== 3. 源文件占用（size-files） =========="
+        sed -n '1,$p' "${files_file}"
+    } > "${report_temp_file}" || {
+        rm -rf -- "${temp_dir}"
+        return 1
+    }
+
+    mv "${report_temp_file}" "${SIZE_REPORT_FILE}" || {
+        rm -rf -- "${temp_dir}"
+        return 1
+    }
+    rm -rf -- "${temp_dir}"
+    printf '已生成固件大小报告: %s\n' "${SIZE_REPORT_FILE}"
 }
 
 select_idf_path()
@@ -228,6 +278,27 @@ main()
             if [[ "${2:-}" == "flash" ]]; then
                 build_littlefs_assets
             fi
+            ;;
+        menuconfig)
+            if [[ $# -ne 1 ]]; then
+                printf '%s\n' "错误: menuconfig 不接受额外参数。" >&2
+                return 1
+            fi
+            selected_idf_path="$(select_idf_path)" || return 1
+            activate_idf "${selected_idf_path}" || return 1
+            show_active_idf
+            prepare_build_directory || return 1
+            idf.py menuconfig
+            ;;
+        size)
+            if [[ $# -ne 1 ]]; then
+                printf '%s\n' "错误: size 不接受额外参数。" >&2
+                return 1
+            fi
+            selected_idf_path="$(select_idf_path)" || return 1
+            activate_idf "${selected_idf_path}" || return 1
+            show_active_idf
+            generate_size_report
             ;;
         clean)
             clean_bootloader_cache

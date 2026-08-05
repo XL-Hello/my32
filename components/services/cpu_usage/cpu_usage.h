@@ -22,3 +22,10 @@ esp_err_t cpu_usage_init(void);
  * 数据由后台任务每秒更新一次，首次有效采样前返回 0。
  */
 uint8_t cpu_usage_get_percent(void);
+
+/**
+ * @brief 获取最近一个采样窗口内指定 CPU 核心的忙碌率。
+ *
+ * `core_id` 为 0 或 1，分别对应 CPU0 与 CPU1。传入无效核心编号时返回 0。
+ */
+uint8_t cpu_usage_get_core_percent(uint32_t core_id);
