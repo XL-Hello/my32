@@ -17,7 +17,7 @@
 #define LVGL_TICK_PERIOD_US 2000
 #define LVGL_TASK_STACK_SIZE 4096
 #define LVGL_TASK_PRIORITY 5
-#define LVGL_IDLE_FALLBACK_DELAY_MS 10
+#define LVGL_IDLE_FALLBACK_DELAY_MS 30
 
 static esp_timer_handle_t s_lvgl_tick_timer;
 static lvgl_port_ui_init_cb_t s_ui_init_callback;

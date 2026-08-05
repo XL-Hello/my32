@@ -7,6 +7,7 @@
 #include "icon.h"
 #include "lvgl/lvgl.h"
 #include "settings_ui.h"
+#include "ui_back_button.h"
 #include "ui_font.h"
 #include "wifi_manager.h"
 
@@ -572,31 +573,6 @@ static void wifi_settings_ui_back_event(lv_event_t *event)
     }
 }
 
-static void wifi_settings_ui_create_back_button(lv_obj_t *parent)
-{
-    lv_obj_t *button = lv_btn_create(parent);
-    lv_obj_set_size(button, 40, 40);
-    lv_obj_set_pos(button, 8, 8);
-    lv_obj_set_style_bg_opa(button, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_border_width(button, 0, LV_PART_MAIN);
-    lv_obj_set_style_shadow_width(button, 0, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(button, 0, LV_PART_MAIN);
-    lv_obj_add_event_cb(button, wifi_settings_ui_back_event, LV_EVENT_CLICKED, NULL);
-
-    lv_obj_t *circle = lv_obj_create(button);
-    lv_obj_set_size(circle, 24, 24);
-    lv_obj_set_pos(circle, 8, 8);
-    lv_obj_set_style_bg_color(circle, lv_color_hex(WIFI_SETTINGS_COLOR_CARD_END), LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(circle, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_border_color(circle, lv_color_hex(WIFI_SETTINGS_COLOR_ACCENT), LV_PART_MAIN);
-    lv_obj_set_style_border_width(circle, 1, LV_PART_MAIN);
-    lv_obj_set_style_radius(circle, LV_RADIUS_CIRCLE, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(circle, 0, LV_PART_MAIN);
-    lv_obj_clear_flag(circle, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_clear_flag(circle, LV_OBJ_FLAG_CLICKABLE);
-    wifi_settings_ui_create_icon(circle, UI_ICON_PATH_BACK, WIFI_SETTINGS_COLOR_ACCENT, 0, 0, 24);
-}
-
 static void wifi_settings_ui_create_status_card(lv_obj_t *parent)
 {
     wifi_settings_ui_create_card(parent, WIFI_SETTINGS_CARD_X, 54, WIFI_SETTINGS_CARD_WIDTH,
@@ -719,7 +695,7 @@ static void wifi_settings_ui_create_page(void)
     lv_obj_set_style_text_font(screen, ui_font_get_16(), LV_PART_MAIN);
     lv_obj_clear_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
 
-    wifi_settings_ui_create_back_button(screen);
+    ui_back_button_create(screen, wifi_settings_ui_back_event);
     wifi_settings_ui_create_label(screen, "Wi-Fi 设置", ui_font_get_15(), WIFI_SETTINGS_COLOR_PRIMARY,
                                   54, 19, 110);
     wifi_settings_ui_create_status_card(screen);

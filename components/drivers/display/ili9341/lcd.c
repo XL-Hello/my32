@@ -16,8 +16,7 @@
 #include "platform_log.h"
 
 #define LCD_HOST SPI2_HOST
-#define LCD_PIXEL_CLOCK_HZ (10 * 1000 * 1000)
-#define LCD_TEST_LINES 80
+#define LCD_PIXEL_CLOCK_HZ (40 * 1000 * 1000)
 #define LCD_VERSION_TEST_PERIOD_MS 2000
 
 static esp_lcd_panel_handle_t s_panel;
@@ -77,7 +76,7 @@ esp_err_t lcd_init(void)
         .miso_io_num = LCD_PIN_MISO,
         .quadwp_io_num = -1,
         .quadhd_io_num = -1,
-        .max_transfer_sz = LCD_V_RES * LCD_TEST_LINES * sizeof(uint16_t),
+        .max_transfer_sz = LCD_H_RES * LCD_TEST_LINES * sizeof(uint16_t),
     };
     esp_err_t err = spi_bus_initialize(LCD_HOST, &bus_config, SPI_DMA_CH_AUTO);
     if (err != ESP_OK) {
@@ -212,8 +211,16 @@ esp_err_t lcd_draw_bitmap(int x_start, int y_start, int x_end, int y_end,
         return ESP_ERR_INVALID_STATE;
     }
 
-    return esp_lcd_panel_draw_bitmap(s_panel, x_start, y_start, x_end, y_end,
-                                     color_data);
+    esp_err_t err = esp_lcd_panel_draw_bitmap(s_panel, x_start, y_start, x_end,
+                                               y_end, color_data);
+    if (err != ESP_OK) {
+        log_error("LCD bitmap draw failed: area=(%d,%d)-(%d,%d), bytes=%u: %s",
+                  x_start, y_start, x_end, y_end,
+                  (unsigned)((x_end - x_start) * (y_end - y_start) * sizeof(uint16_t)),
+                  esp_err_to_name(err));
+    }
+
+    return err;
 }
 
 esp_err_t lcd_set_color_trans_done_callback(lcd_color_trans_done_cb_t callback,

@@ -5,11 +5,11 @@
 #include "home_ui.h"
 #include "icon.h"
 #include "lvgl/lvgl.h"
+#include "ui_back_button.h"
 #include "ui_font.h"
 #include "wifi_settings_ui.h"
 
 #define CONTROL_CENTER_HEADER_HEIGHT 61
-#define CONTROL_CENTER_HEADER_BUTTON_SIZE 24
 #define CONTROL_CENTER_CARD_X 13
 #define CONTROL_CENTER_CARD_WIDTH 214
 #define CONTROL_CENTER_CARD_HEIGHT 62
@@ -78,31 +78,9 @@ static lv_obj_t *controlcenter_ui_create_icon(lv_obj_t *parent, const char *icon
     return image;
 }
 
-static void controlcenter_ui_create_header_button(lv_obj_t *parent, lv_coord_t x,
-                                                   const char *icon_path,
-                                                   lv_event_cb_t event_callback)
-{
-    lv_obj_t *button = lv_btn_create(parent);
-    lv_obj_set_size(button, CONTROL_CENTER_HEADER_BUTTON_SIZE,
-                    CONTROL_CENTER_HEADER_BUTTON_SIZE);
-    lv_obj_set_pos(button, x, 12);
-    lv_obj_set_style_bg_opa(button, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_border_color(button, lv_color_hex(CONTROL_CENTER_COLOR_ACCENT), LV_PART_MAIN);
-    lv_obj_set_style_border_width(button, 1, LV_PART_MAIN);
-    lv_obj_set_style_radius(button, LV_RADIUS_CIRCLE, LV_PART_MAIN);
-    lv_obj_set_style_shadow_width(button, 0, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(button, 0, LV_PART_MAIN);
-    lv_obj_add_event_cb(button, event_callback, LV_EVENT_CLICKED, NULL);
-
-    lv_obj_t *image = controlcenter_ui_create_icon(button, icon_path,
-                                                    CONTROL_CENTER_COLOR_ACCENT);
-    lv_obj_center(image);
-}
-
 static void controlcenter_ui_create_header(lv_obj_t *parent)
 {
-    controlcenter_ui_create_header_button(parent, 13, UI_ICON_PATH_BACK,
-                                          controlcenter_ui_back_home);
+    ui_back_button_create(parent, controlcenter_ui_back_home);
 
     lv_obj_t *title = lv_label_create(parent);
     lv_label_set_text(title, "控制中心");

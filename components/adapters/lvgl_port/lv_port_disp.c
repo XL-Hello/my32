@@ -12,6 +12,7 @@
 #include "lv_port_disp.h"
 #include <stdbool.h>
 #include "lcd.h"
+#include "esp_heap_caps.h"
 
 /*********************
  *      宏定义
@@ -19,6 +20,7 @@
 #define MY_DISP_HOR_RES LCD_H_RES
 #define MY_DISP_VER_RES LCD_V_RES
 #define LVGL_FPS_WINDOW_MS 1000
+#define LVGL_FRAMEBUFFER_SIZE (MY_DISP_HOR_RES * LCD_TEST_LINES) /* 240×40=9600 像素，约 18.75 KiB。 */
 
 /**********************
  *      类型定义
@@ -89,9 +91,15 @@ void lv_port_disp_init(void)
 
     // /* 方案 2：双小缓冲。 */
     static lv_disp_draw_buf_t draw_buf_dsc_2;
-    static lv_color_t buf_2_1[MY_DISP_HOR_RES * 40]; /* 可容纳 40 行像素的第一个缓冲区。 */
-    static lv_color_t buf_2_2[MY_DISP_HOR_RES * 40]; /* 可容纳 40 行像素的第二个缓冲区。 */
-    lv_disp_draw_buf_init(&draw_buf_dsc_2, buf_2_1, buf_2_2, MY_DISP_HOR_RES * 40); /* 初始化显示缓冲区。 */
+    //内部sram
+    // static lv_color_t buf_2_1[LVGL_FRAMEBUFFER_SIZE]; /* 可容纳 80 行像素的第一个缓冲区。 */
+    // static lv_color_t buf_2_2[LVGL_FRAMEBUFFER_SIZE]; /* 可容纳 80 行像素的第二个缓冲区。 */
+    //使用psram
+    static lv_color_t *buf_2_1 = NULL;
+    static lv_color_t *buf_2_2 = NULL;
+    buf_2_1 = heap_caps_malloc(LVGL_FRAMEBUFFER_SIZE * sizeof(lv_color_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    buf_2_2 = heap_caps_malloc(LVGL_FRAMEBUFFER_SIZE * sizeof(lv_color_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    lv_disp_draw_buf_init(&draw_buf_dsc_2, buf_2_1, buf_2_2, LVGL_FRAMEBUFFER_SIZE); /* 初始化显示缓冲区。 */
 
     // /* 方案 3：双全屏缓冲；还需在下方设置 disp_drv.full_refresh = 1。 */
     // static lv_disp_draw_buf_t draw_buf_dsc_3;

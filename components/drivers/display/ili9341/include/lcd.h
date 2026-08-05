@@ -15,6 +15,8 @@
 #define LCD_PIN_RST 10
 #define LCD_PIN_CS 11
 
+#define LCD_TEST_LINES 40
+
 /**
  * @brief LCD 显示方向。
  *
