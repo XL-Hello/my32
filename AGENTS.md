@@ -31,6 +31,46 @@ pytest -v pytest_hello_world.py --target esp32s3  # 运行 pytest-embedded 测�
 
 真机测试会等待 `Hello world!` 输出并验证堆内存日志。QEMU 测试目前仅标记为支持 ESP32。
 
+## AI 闭环开发流程
+
+使用 AI 完成一次"需求 → 验证"的闭环开发时，按以下三步执行：
+
+### 1. 明确目标与验证点
+
+动手修改代码前，先与 AI 对齐本次变更的目标和实现方案，并明确**需要验证什么**：
+
+- 本次要实现或修复的功能是什么，涉及哪些模块或组件；
+- 预期行为如何观察：通过哪些日志输出、串口打印或 UI 表现来判定功能正常；
+- 是否涉及资源文件（图标、字体、相册 PNG 等），若是则烧录流程不同（见第 2 步）。
+
+### 2. 修改代码、编译与烧录
+
+AI 完成代码修改后，编译并烧录固件：
+
+```bash
+./build.sh build && ./build.sh flash
+```
+
+若本次修改涉及资源文件（如 `app/ui/icon/png/`、`app/ui/front/` 字体、`app/ui/home/sub_home/album/photo/` 相册等），需先重新打包并烧录 LittleFS 资源：
+
+```bash
+./build.sh build flash && ./build.sh flash flash
+```
+
+其中 `./build.sh build flash` 会重新打包图标、字体与相册资源并生成 LittleFS 镜像，`./build.sh flash flash` 单独烧录该资源分区。
+
+### 3. 开启日志监控验证
+
+烧录完成后开启串口日志监控：
+
+```bash
+./build.sh monitor
+```
+
+在监控终端中观察日志输出，对照第 1 步确定的验证点确认功能是否正常运行。若发现问题，回到第 1 步调整方案后重复闭环。
+
+> 提示：`monitor` 是常驻前台进程，验证完成后按 `Ctrl+]` 退出。默认串口为 `/dev/ttyACM0`，可通过 `DEFAULT_SERIAL_PORT` 环境变量覆盖。
+
 ## 编码风格与命名规范
 
 遵循 `main/hello_world_main.c` 中已有的 ESP-IDF C 风格：使用四个空格缩进，控制语句的左花括号与语句同行，标识符采用 `snake_case`，配置宏采用 `UPPER_SNAKE_CASE`。使用定宽整数类型及匹配的格式宏，例如 `PRIu32`。在 CMake 中明确列出组件源文件。Python 测试使用四个空格缩进，适当添加类型注解，测试名采用 `snake_case`，并用 pytest 标记注明支持的目标。

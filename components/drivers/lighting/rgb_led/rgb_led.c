@@ -11,7 +11,7 @@
 #define LOG_TAG "rgb_led"
 #include "platform_log.h"
 
-#define RGB_LED_TASK_STACK_SIZE 2048
+#define RGB_LED_TASK_STACK_SIZE (4U * 1024U)
 #define RGB_LED_TASK_PRIORITY   5
 
 static bool s_initialized;

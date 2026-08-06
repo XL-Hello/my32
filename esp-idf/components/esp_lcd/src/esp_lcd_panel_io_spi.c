@@ -406,7 +406,7 @@ static void lcd_spi_pre_trans_cb(spi_transaction_t *trans)
     }
 }
 
-static void lcd_spi_post_trans_color_cb(spi_transaction_t *trans)
+static void IRAM_ATTR lcd_spi_post_trans_color_cb(spi_transaction_t *trans)
 {
     esp_lcd_panel_io_spi_t *spi_panel_io = trans->user;
     lcd_spi_trans_descriptor_t *lcd_trans = __containerof(trans, lcd_spi_trans_descriptor_t, base);

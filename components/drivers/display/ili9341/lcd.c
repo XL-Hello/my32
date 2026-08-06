@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "driver/spi_master.h"
+#include "esp_attr.h"
 #include "esp_heap_caps.h"
 #include "esp_lcd_ili9341.h"
 #include "esp_lcd_panel_io.h"
@@ -29,9 +30,9 @@ static void *s_color_trans_done_user_ctx;
 static int s_h_res = LCD_H_RES;
 static int s_v_res = LCD_V_RES;
 
-static bool lcd_color_trans_done_callback(esp_lcd_panel_io_handle_t panel_io,
-                                          esp_lcd_panel_io_event_data_t *event_data,
-                                          void *user_ctx)
+static bool IRAM_ATTR lcd_color_trans_done_callback(esp_lcd_panel_io_handle_t panel_io,
+                                                    esp_lcd_panel_io_event_data_t *event_data,
+                                                    void *user_ctx)
 {
     (void)panel_io;
     (void)event_data;
@@ -98,7 +99,7 @@ esp_err_t lcd_init(void)
         .lcd_cmd_bits = 8,
         .lcd_param_bits = 8,
         .spi_mode = 0,
-        .trans_queue_depth = 10,
+        .trans_queue_depth = 16,
         .on_color_trans_done = lcd_color_trans_done_callback,
         .user_ctx = s_color_trans_done,
     };

@@ -1,0 +1,6 @@
+{
+  "host": "0.0.0.0",
+  "web_port": 8080,
+  "storage_dir": "storage",
+  "max_upload_bytes": 8388608
+}

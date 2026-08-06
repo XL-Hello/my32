@@ -27,11 +27,13 @@ show_usage()
     printf '%s\n' "用法:"
     printf '%s\n' "  source ./build.sh env                    切换当前终端到项目内 esp-idf"
     printf '%s\n' "  ./build.sh build                         使用项目内 esp-idf 编译"
-    printf '%s\n' "  ./build.sh build flash                   编译并打包 LittleFS 图标与字体资源"
+    printf '%s\n' "  ./build.sh build flash                   编译并打包 LittleFS 图标、字体与相册资源"
+    printf '%s\n' "  ./build.sh build flash ota               额外将 build/hello_world.bin 打包为本地 OTA 包"
     printf '%s\n' "  ./build.sh menuconfig                    使用项目内 esp-idf 打开配置界面"
     printf '%s\n' "  ./build.sh size                          输出固件内存、组件及源文件大小报告"
     printf '%s\n' "  ./build.sh clean               清理 bootloader 的 SDK/CMake 缓存"
     printf '%s\n' "  ./build.sh flash [串口]                  烧录应用，默认 ${DEFAULT_SERIAL_PORT}"
+    printf '%s\n' "  ./build.sh monitor [串口]               开启串口日志监控，默认 ${DEFAULT_SERIAL_PORT}"
     printf '%s\n' "  ./build.sh flash flash [串口]            单独烧录 LittleFS 图标与字体资源，默认 ${DEFAULT_SERIAL_PORT}"
     printf '%s\n' "  可通过 DEFAULT_SERIAL_PORT 环境变量覆盖默认串口。"
 }
@@ -172,6 +174,7 @@ ensure_mklittlefs()
 
 build_littlefs_assets()
 {
+    local include_ota_package="${1:-}"
     if [[ ! -d "${LITTLEFS_IMAGE_SOURCE_DIR}" ]]; then
         printf '错误: 未找到 LittleFS 图标目录: %s\n' "${LITTLEFS_IMAGE_SOURCE_DIR}" >&2
         return 1
@@ -206,7 +209,7 @@ build_littlefs_assets()
     python3 "${LITTLEFS_FONT_LIST_GENERATOR}" || return 1
     rm -rf -- "${LITTLEFS_STAGE_DIR}" || return 1
     mkdir -p "${LITTLEFS_STAGE_DIR}/fonts" "${LITTLEFS_STAGE_DIR}/png" \
-             "${LITTLEFS_STAGE_DIR}/photo" || return 1
+             "${LITTLEFS_STAGE_DIR}/photo" "${LITTLEFS_STAGE_DIR}/ota" || return 1
     cp -R "${LITTLEFS_IMAGE_SOURCE_DIR}/." "${LITTLEFS_STAGE_DIR}/png" || return 1
 
     local photo_path
@@ -217,6 +220,16 @@ build_littlefs_assets()
         ((photo_count += 1))
     done
     printf '已打包相册 PNG：%d 个\n' "${photo_count}"
+
+    if [[ "${include_ota_package}" == "ota" ]]; then
+        local ota_package_file="${PROJECT_ROOT}/build/hello_world.bin"
+        if [[ ! -f "${ota_package_file}" ]]; then
+            printf '错误: 未找到 OTA 固件包: %s\n' "${ota_package_file}" >&2
+            return 1
+        fi
+        cp "${ota_package_file}" "${LITTLEFS_STAGE_DIR}/ota/hello_world.bin" || return 1
+        printf '已打包本地 OTA 固件包：%s\n' "${ota_package_file}"
+    fi
 
     local font_size
     local font_symbols
@@ -266,8 +279,9 @@ main()
             fi
             ;;
         build)
-            if [[ $# -gt 2 || ( $# -eq 2 && "$2" != "flash" ) ]]; then
-                printf '%s\n' "错误: build 仅支持可选参数 flash。" >&2
+            if [[ $# -gt 3 || ( $# -ge 2 && "$2" != "flash" ) ||
+                ( $# -eq 3 && "$3" != "ota" ) ]]; then
+                printf '%s\n' "错误: build 仅支持 build、build flash 或 build flash ota。" >&2
                 return 1
             fi
             selected_idf_path="$(select_idf_path)" || return 1
@@ -276,7 +290,7 @@ main()
             prepare_build_directory || return 1
             idf.py build || return 1
             if [[ "${2:-}" == "flash" ]]; then
-                build_littlefs_assets
+                build_littlefs_assets "${3:-}"
             fi
             ;;
         menuconfig)
@@ -324,6 +338,16 @@ main()
                 fi
                 idf.py -p "${2:-${DEFAULT_SERIAL_PORT}}" flash
             fi
+            ;;
+        monitor)
+            if [[ $# -gt 2 ]]; then
+                printf '%s\n' "错误: monitor 最多接受一个串口参数。" >&2
+                return 1
+            fi
+            selected_idf_path="$(select_idf_path)" || return 1
+            activate_idf "${selected_idf_path}" || return 1
+            show_active_idf
+            idf.py -p "${2:-${DEFAULT_SERIAL_PORT}}" monitor
             ;;
         -h|--help|help|"")
             show_usage

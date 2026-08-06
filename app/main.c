@@ -24,6 +24,7 @@
 #include "wifi_manager.h"
 #include "ui_font.h"
 #include "system_monitor_ui.h"
+#include "local_ota.h"
 
 #define LOG_TAG "main"
 #include "platform_log.h"
@@ -109,6 +110,9 @@ void my_main()
     ws2812b_set_pixel(0, 5, 5, 5);
     ws2812b_refresh();
     log_info("ws2812b initialized");
+
+    /* 所有关键服务已启动；仅此时确认首次启动的 OTA 新固件可正常运行。 */
+    local_ota_confirm_running_app();
 
 }
 

@@ -1,0 +1,15 @@
+menu "本地 OTA"
+
+config LOCAL_OTA_HTTP_PACKAGE_URL
+    string "本地 OTA 固件 URL"
+    default "http://192.168.31.12:8080/hello_world.bin"
+    help
+        可由 ESP32 在局域网访问的完整固件 URL。检查时 HTTP 返回 200 且
+        Content-Length 大于 0 即视为存在更新包。
+
+config LOCAL_OTA_HTTP_TIMEOUT_MS
+    int "HTTP 下载超时（毫秒）"
+    default 15000
+    range 1000 120000
+
+endmenu

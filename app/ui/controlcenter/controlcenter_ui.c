@@ -4,6 +4,7 @@
 
 #include "home_ui.h"
 #include "icon.h"
+#include "sys_info_ui.h"
 #include "lvgl/lvgl.h"
 #include "ui_back_button.h"
 #include "ui_font.h"
@@ -20,6 +21,8 @@
 #define CONTROL_CENTER_CARD_LABEL_X 72
 #define CONTROL_CENTER_BOTTOM_GESTURE_HEIGHT 44
 #define CONTROL_CENTER_STATUS_DOT_SIZE 8
+#define CONTROL_CENTER_OTA_SPINNER_SIZE 56
+#define CONTROL_CENTER_OTA_STATUS_PERIOD_MS 200
 
 /* 与 02-控制中心.png 保持一致的墨绿薄荷色板。 */
 #define CONTROL_CENTER_COLOR_BACKGROUND 0x10201F
@@ -29,6 +32,7 @@
 #define CONTROL_CENTER_COLOR_PRIMARY    0xF2FAF7
 #define CONTROL_CENTER_COLOR_SECONDARY  0x9BB9B0
 #define CONTROL_CENTER_COLOR_HEALTHY    0x22C55E
+#define CONTROL_CENTER_COLOR_OVERLAY    0x000000
 
 typedef struct {
     const char *icon_path;
@@ -42,10 +46,16 @@ static void controlcenter_ui_open_wifi_settings(lv_event_t *event)
     wifi_settings_ui_create_from_control_center();
 }
 
+static void controlcenter_ui_open_sys_info(lv_event_t *event)
+{
+    (void)event;
+    sys_info_ui_create();
+}
+
 static const controlcenter_ui_menu_item_t s_menu_items[] = {
     {UI_ICON_PATH_SETTINGS, "设备设置", NULL},
     {UI_ICON_PATH_CONTROL_CENTER_WIFI, "网络设置", controlcenter_ui_open_wifi_settings},
-    {UI_ICON_PATH_INFO, "系统信息", NULL},
+    {UI_ICON_PATH_INFO, "系统信息", controlcenter_ui_open_sys_info},
 };
 
 static void controlcenter_ui_back_home(lv_event_t *event)

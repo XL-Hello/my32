@@ -18,6 +18,12 @@
 #define UI_ICON_PATH_REFRESH             "R:/littlefs/png/refresh.png"          // 24*24
 #define UI_ICON_PATH_LOCK                "R:/littlefs/png/lock.png"             // 24*24
 #define UI_ICON_PATH_ALBUM               "R:/littlefs/png/album.png"            // 24*24
+#define UI_ICON_PATH_CHIP                "R:/littlefs/png/chip.png"             // 24*24
+#define UI_ICON_PATH_OS                  "R:/littlefs/png/os.png"               // 24*24
+#define UI_ICON_PATH_STORAGE             "R:/littlefs/png/storage.png"          // 24*24
+#define UI_ICON_PATH_UPDATE              "R:/littlefs/png/update.png"           // 24*24
+#define UI_ICON_PATH_DOWNLOAD            "R:/littlefs/png/download.png"         // 24*24
+#define UI_ICON_PATH_INSTALL             "R:/littlefs/png/install.png"          // 24*24
 
 #define UI_ICON_PATH_INFO                "R:/littlefs/png/info_32.png"          // 32*32
 #define UI_ICON_PATH_SETTINGS            "R:/littlefs/png/settings.png"         // 32*32

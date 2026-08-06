@@ -19,6 +19,9 @@
 
 #include <stdint.h>
 
+/* 使 lv_disp_flush_ready 等可在 SPI ISR（缓存禁用窗口）内安全调用。 */
+#include "esp_attr.h"
+
 /*====================
    颜色设置
  *====================*/
@@ -47,14 +50,14 @@
 
 /*
  * LVGL 对象、文本和图片解码的动态内存固定分配到 PSRAM；显示 DMA 双缓冲仍使用
- * 内部 DRAM，避免 LCD 刷新受外部 RAM 带宽和缓存访问影响。
+ * PSRAM。
  */
 #define LV_MEM_CUSTOM 1
 #if LV_MEM_CUSTOM == 0
     /*可供 `lv_mem_alloc()` 使用的内存大小，单位为字节（>= 2 kB）。*/
     #define LV_MEM_SIZE (48U * 1024U)          /*[字节]*/
 
-    /*为内存池设置地址，而非将其分配为普通数组；也可位于外部 SRAM。*/
+    /*为内存池设置地址，而非将其分配为普通数组；也可位于外部 PSRAM。*/
     #define LV_MEM_ADR 0     /*0：未使用*/
     /*也可不提供地址，而是提供一个为 LVGL 获取内存池的内存分配器，例如 my_malloc。*/
     #if LV_MEM_ADR == 0
@@ -330,7 +333,7 @@
 #define LV_ATTRIBUTE_TIMER_HANDLER
 
 /*为 `lv_disp_flush_ready` 函数定义自定义属性。*/
-#define LV_ATTRIBUTE_FLUSH_READY
+#define LV_ATTRIBUTE_FLUSH_READY IRAM_ATTR
 
 /*缓冲区所需的对齐大小。*/
 #define LV_ATTRIBUTE_MEM_ALIGN_SIZE 1

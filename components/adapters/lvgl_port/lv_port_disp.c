@@ -11,8 +11,10 @@
  *********************/
 #include "lv_port_disp.h"
 #include <stdbool.h>
+#include "esp_attr.h"
 #include "lcd.h"
 #include "esp_heap_caps.h"
+#include "lvgl_port.h"
 
 /*********************
  *      宏定义
@@ -193,13 +195,14 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
     /* 传输由 SPI DMA 异步执行；完成后由 lcd_flush_ready_callback() 通知 LVGL。 */
 }
 
-static bool lcd_flush_ready_callback(void *user_ctx)
+static bool IRAM_ATTR lcd_flush_ready_callback(void *user_ctx)
 {
     (void)user_ctx;
+    lv_disp_drv_t *disp_drv = (lv_disp_drv_t *)s_pending_disp_drv;
+    s_pending_disp_drv = NULL;   // 必须先清空
 
-    if (s_pending_disp_drv != NULL) {
-        lv_disp_flush_ready(s_pending_disp_drv);
-        s_pending_disp_drv = NULL;
+    if (disp_drv != NULL) {
+        lv_disp_flush_ready(disp_drv);
     }
 
     return false;

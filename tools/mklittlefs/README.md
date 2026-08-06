@@ -16,7 +16,7 @@ app/ui/front/Noto-Sans-SC-Bold/NotoSansSCMedium-4.ttf
                                                    UI 字体源文件
 ```
 
-执行 `./build.sh build flash` 后，脚本先将 `list_raw.txt` 生成无重复字符的单行 `list.txt`，再使用 `lv_font_conv` 生成 12、16、20 px 字体，最后把图标和字体汇集到生成目录：
+执行 `./build.sh build flash` 后，脚本先将 `list_raw.txt` 生成无重复字符的单行 `list.txt`，再使用 `lv_font_conv` 生成 12、16、20 px 字体，最后把图标和字体汇集到生成目录。`./dreame.sh build flash ota` 还会把 `build/hello_world.bin` 加入为 `ota/hello_world.bin`（LVGL 路径 `R:/littlefs/ota/hello_world.bin`）：
 
 ```text
 build/littlefs_assets/
