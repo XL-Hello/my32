@@ -1,0 +1,9 @@
+#ifndef GLOG_LWMEM_OPTS_H
+#define GLOG_LWMEM_OPTS_H
+
+#define LWMEM_CFG_OS 0
+#define LWMEM_CFG_ALIGN_NUM 4
+#define LWMEM_CFG_FULL 1
+#define LWMEM_CFG_ENABLE_STATS 1
+
+#endif
