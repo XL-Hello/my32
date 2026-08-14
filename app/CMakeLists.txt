@@ -1,4 +1,6 @@
 idf_component_register(SRCS "main.c"
+                    "../components/services/console/console.c"
+                    "../components/services/console/monitor.c"
                     "local_ota.c"
                     "ui/home/home_ui.c"
                     "ui/home/sub_home/temp_humidity/home_temp_humidity.c"
@@ -15,7 +17,7 @@ idf_component_register(SRCS "main.c"
                     "ui/set/wifi/wifi_settings_ui.c"
                     "ui/icon/icon.c"
                     "ui/front/ui_font.c"
-                    INCLUDE_DIRS "." "ui/home" "ui/home/sub_home/temp_humidity" "ui/home/sub_home/album" "ui/common" "ui/statusbar" "ui/controlcenter" "ui/controlcenter/sysInfo" "ui/developer_mode" "ui/set" "ui/set/wifi" "ui/front" "ui/icon"
-                    REQUIRES lvgl lvgl_port ws2812b rgb_led spi_flash platform_log app_update esp_http_client
+                    INCLUDE_DIRS "." "../components/services/console" "ui/home" "ui/home/sub_home/temp_humidity" "ui/home/sub_home/album" "ui/common" "ui/statusbar" "ui/controlcenter" "ui/controlcenter/sysInfo" "ui/developer_mode" "ui/set" "ui/set/wifi" "ui/front" "ui/icon"
+                    REQUIRES lvgl lvgl_port ws2812b rgb_led spi_flash platform_log app_update esp_http_client heap console
                              environment_sensor system_time cpu_usage wifi_manager w25q64_test littlefs_vfs
-                             littlefs_test platform)
+                             littlefs_test platform greatlogger)

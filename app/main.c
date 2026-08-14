@@ -9,6 +9,7 @@
 #include "sdkconfig.h"
 #include "esp_chip_info.h"
 #include "esp_flash.h"
+#include "esp_heap_caps.h"
 #include "esp_system.h"
 #include "lcd.h"
 #include "rgb_led.h"
@@ -25,6 +26,8 @@
 #include "ui_font.h"
 #include "system_monitor_ui.h"
 #include "local_ota.h"
+#include "glog.h"
+#include "console.h"
 
 #define LOG_TAG "main"
 #include "platform_log.h"
@@ -114,6 +117,9 @@ void my_main()
     /* 所有关键服务已启动；仅此时确认首次启动的 OTA 新固件可正常运行。 */
     local_ota_confirm_running_app();
 
+    //日志系统
+    glog_init();
+
 }
 
 void app_main(void)
@@ -149,4 +155,5 @@ void app_main(void)
     printf("Minimum free heap size: %" PRIu32 " bytes\n", esp_get_minimum_free_heap_size());
 
     my_main();
+    console_init();
 }

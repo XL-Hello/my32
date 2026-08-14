@@ -15,6 +15,7 @@
 #include "lcd.h"
 #include "esp_heap_caps.h"
 #include "lvgl_port.h"
+#include "platform_log.h"
 
 /*********************
  *      宏定义
@@ -96,11 +97,15 @@ void lv_port_disp_init(void)
     //内部sram
     // static lv_color_t buf_2_1[LVGL_FRAMEBUFFER_SIZE]; /* 可容纳 80 行像素的第一个缓冲区。 */
     // static lv_color_t buf_2_2[LVGL_FRAMEBUFFER_SIZE]; /* 可容纳 80 行像素的第二个缓冲区。 */
-    //使用psram
+    // 使用内部 DMA 内存，避免 PSRAM 缓冲被 SPI 驱动临时拷贝（节省 CPU，且无 Cache 一致性问题）。
     static lv_color_t *buf_2_1 = NULL;
     static lv_color_t *buf_2_2 = NULL;
-    buf_2_1 = heap_caps_malloc(LVGL_FRAMEBUFFER_SIZE * sizeof(lv_color_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-    buf_2_2 = heap_caps_malloc(LVGL_FRAMEBUFFER_SIZE * sizeof(lv_color_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    buf_2_1 = heap_caps_malloc(LVGL_FRAMEBUFFER_SIZE * sizeof(lv_color_t), MALLOC_CAP_DMA | MALLOC_CAP_8BIT);
+    buf_2_2 = heap_caps_malloc(LVGL_FRAMEBUFFER_SIZE * sizeof(lv_color_t), MALLOC_CAP_DMA | MALLOC_CAP_8BIT);
+    if (buf_2_1 == NULL || buf_2_2 == NULL) {
+        log_error("LVGL 显示双缓冲分配失败（内部 DMA 内存不足，共需 %u 字节）",
+                  (unsigned)(2 * LVGL_FRAMEBUFFER_SIZE * sizeof(lv_color_t)));
+    }
     lv_disp_draw_buf_init(&draw_buf_dsc_2, buf_2_1, buf_2_2, LVGL_FRAMEBUFFER_SIZE); /* 初始化显示缓冲区。 */
 
     // /* 方案 3：双全屏缓冲；还需在下方设置 disp_drv.full_refresh = 1。 */

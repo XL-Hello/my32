@@ -49,8 +49,9 @@
  *=========================*/
 
 /*
- * LVGL 对象、文本和图片解码的动态内存固定分配到 PSRAM；显示 DMA 双缓冲仍使用
- * PSRAM。
+ * LVGL 对象、文本和图片解码的动态内存固定分配到 PSRAM；显示 DMA 双缓冲使用内部
+ * DMA 内存（MALLOC_CAP_DMA），避免 PSRAM 缓冲被 SPI 驱动临时拷贝、也规避 Cache
+ * 一致性问题。
  */
 #define LV_MEM_CUSTOM 1
 #if LV_MEM_CUSTOM == 0
