@@ -18,3 +18,39 @@ config MQTT_TEST_CLIENT_ID
         同一 Broker 上每台设备必须使用不同的客户端 ID。
 
 endmenu
+
+menu "和风天气"
+
+config WEATHER_QWEATHER_HOST
+    string "和风天气私有 API Host"
+    default ""
+
+config WEATHER_QWEATHER_API_KEY
+    string "和风天气 API Key"
+    default ""
+
+config WEATHER_DEFAULT_CITY
+    string "默认城市（英文）"
+    default "Shenzhen"
+
+config WEATHER_DEFAULT_LOCATION_ID
+    string "默认城市 LocationID"
+    default "101280601"
+
+config WEATHER_REFRESH_MINUTES
+    int "实时天气刷新间隔（分钟）"
+    range 5 1440
+    default 30
+
+config WEATHER_AUTO_LOCATION
+    bool "启用公网 IP 自动定位"
+    default n
+    help
+        启用后每次天气刷新前会使用 HTTPS IP 定位并调用和风 GeoAPI 反查城市。
+
+config WEATHER_IP_GEO_URL
+    string "主 IP 定位服务 URL"
+    default "https://ipinfo.io/json"
+    depends on WEATHER_AUTO_LOCATION
+
+endmenu

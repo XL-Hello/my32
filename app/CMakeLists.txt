@@ -20,5 +20,5 @@ idf_component_register(SRCS "main.c"
                     "ui/front/ui_font.c"
                     INCLUDE_DIRS "." "../components/mqtt" "../components/services/console" "ui/home" "ui/home/sub_home/temp_humidity" "ui/home/sub_home/album" "ui/common" "ui/statusbar" "ui/controlcenter" "ui/controlcenter/sysInfo" "ui/developer_mode" "ui/set" "ui/set/wifi" "ui/front" "ui/icon"
                     REQUIRES lvgl lvgl_port ws2812b rgb_led spi_flash platform_log app_update esp_http_client heap console
-                             environment_sensor system_time cpu_usage wifi_manager w25q64_test littlefs_vfs
+                             environment_sensor system_time cpu_usage wifi_manager weather w25q64_test littlefs_vfs
                              littlefs_test platform greatlogger mqtt)

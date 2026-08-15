@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <time.h>
 
+#include "sdkconfig.h"
 #include "controlcenter_ui.h"
 #include "home_album.h"
 #include "home_temp_humidity.h"
@@ -10,6 +11,8 @@
 #include "platform_log.h"
 #include "statusbar_ui.h"
 #include "ui_font.h"
+#include "icon.h"
+#include "weather_service.h"
 
 #define HOME_UI_CLOCK_REFRESH_PERIOD_MS 1000
 #define HOME_UI_TAB_CONTENT_Y 120
@@ -30,6 +33,9 @@ typedef enum {
 } home_ui_tab_t;
 
 static lv_obj_t *s_time_label;
+static lv_obj_t *s_weather_icon;
+static lv_obj_t *s_weather_city_label;
+static lv_obj_t *s_weather_temperature_label;
 static lv_obj_t *s_tab_content;
 static lv_obj_t *s_first_tab_indicator;
 static lv_obj_t *s_second_tab_indicator;
@@ -128,10 +134,49 @@ static void home_ui_refresh_time(void)
     }
 }
 
+static const char *home_ui_get_weather_icon_path(uint16_t icon_code)
+{
+    if (icon_code == 100 || icon_code == 150) {
+        return UI_ICON_PATH_WEATHER_CLEAR;
+    }
+    if ((icon_code >= 101 && icon_code <= 103) || (icon_code >= 151 && icon_code <= 153)) {
+        return UI_ICON_PATH_WEATHER_CLOUDY;
+    }
+    if (icon_code >= 300 && icon_code <= 399) {
+        return UI_ICON_PATH_WEATHER_RAIN;
+    }
+    if (icon_code >= 400 && icon_code <= 499) {
+        return UI_ICON_PATH_WEATHER_SNOW;
+    }
+    if (icon_code >= 500 && icon_code <= 515) {
+        return UI_ICON_PATH_WEATHER_HAZE;
+    }
+    return UI_ICON_PATH_WEATHER_OVERCAST;
+}
+
+static void home_ui_refresh_weather(void)
+{
+    if (s_weather_icon == NULL || s_weather_city_label == NULL ||
+        s_weather_temperature_label == NULL) {
+        return;
+    }
+
+    weather_snapshot_t weather;
+    if (weather_service_get_snapshot(&weather) != ESP_OK || !weather.valid) {
+        lv_label_set_text(s_weather_temperature_label, "--");
+        ui_icon_set_src(s_weather_icon, UI_ICON_PATH_WEATHER_OVERCAST);
+        return;
+    }
+    lv_label_set_text(s_weather_city_label, weather.city_name);
+    lv_label_set_text_fmt(s_weather_temperature_label, "%d°", weather.temperature_c);
+    ui_icon_set_src(s_weather_icon, home_ui_get_weather_icon_path(weather.icon_code));
+}
+
 static void home_ui_clock_refresh(lv_timer_t *timer)
 {
     (void)timer;
     home_ui_refresh_time();
+    home_ui_refresh_weather();
 }
 
 static void home_ui_open_controlcenter_event(lv_event_t *event)
@@ -171,6 +216,9 @@ void home_ui_destroy(void)
     statusbar_ui_destroy();
 
     s_time_label = NULL;
+    s_weather_icon = NULL;
+    s_weather_city_label = NULL;
+    s_weather_temperature_label = NULL;
     s_tab_content = NULL;
     s_first_tab_indicator = NULL;
     s_second_tab_indicator = NULL;
@@ -191,8 +239,25 @@ void home_ui_create(void)
     lv_obj_add_event_cb(screen, home_ui_tab_gesture_event, LV_EVENT_GESTURE, NULL);
     statusbar_ui_create(screen, home_ui_open_controlcenter_event);
 
-    s_time_label = home_ui_create_label(screen, "--:--", LV_ALIGN_TOP_MID, 0, 57);
+    s_time_label = home_ui_create_label(screen, "--:--", LV_ALIGN_TOP_LEFT, 10, 57);
     lv_obj_set_style_text_font(s_time_label, &lv_font_montserrat_48, LV_PART_MAIN);
+
+    s_weather_icon = lv_img_create(screen);
+    ui_icon_set_src(s_weather_icon, UI_ICON_PATH_WEATHER_OVERCAST);
+    lv_obj_set_pos(s_weather_icon, 159, 67);
+    lv_obj_set_style_img_recolor(s_weather_icon, lv_color_hex(HOME_UI_COLOR_ACCENT), LV_PART_MAIN);
+    lv_obj_set_style_img_recolor_opa(s_weather_icon, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_clear_flag(s_weather_icon, LV_OBJ_FLAG_CLICKABLE);
+
+    s_weather_city_label = home_ui_create_label(screen, CONFIG_WEATHER_DEFAULT_CITY,
+                                                 LV_ALIGN_TOP_LEFT, 188, 70);
+    lv_obj_set_style_text_color(s_weather_city_label, lv_color_hex(HOME_UI_COLOR_SECONDARY), LV_PART_MAIN);
+    lv_obj_set_style_text_font(s_weather_city_label, ui_font_get_9(), LV_PART_MAIN);
+    lv_label_set_long_mode(s_weather_city_label, LV_LABEL_LONG_CLIP);
+    lv_obj_set_width(s_weather_city_label, 48);
+
+    s_weather_temperature_label = home_ui_create_label(screen, "--", LV_ALIGN_TOP_LEFT, 188, 86);
+    lv_obj_set_style_text_font(s_weather_temperature_label, ui_font_get_16(), LV_PART_MAIN);
 
     s_tab_content = lv_obj_create(screen);
     lv_obj_set_size(s_tab_content, lv_obj_get_width(screen), HOME_UI_TAB_CONTENT_HEIGHT);
@@ -207,6 +272,7 @@ void home_ui_create(void)
     home_ui_create_tab_navigation(screen);
     home_ui_show_tab(HOME_UI_TAB_TEMP_HUMIDITY);
     home_ui_refresh_time();
+    home_ui_refresh_weather();
     s_clock_timer = lv_timer_create(home_ui_clock_refresh, HOME_UI_CLOCK_REFRESH_PERIOD_MS, NULL);
 }
 

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1020" viewBox="0 0 1600 1020">
+  <rect width="1600" height="1020" fill="#0D1A19"/>
+  <text x="80" y="82" fill="#F2FAF7" font-family="sans-serif" font-size="34" font-weight="700">首页天气信息 · 实现尺寸标注</text>
+  <g transform="translate(80 130) scale(2)">
+    <rect width="240" height="320" fill="#10201F" stroke="#587870"/>
+    <rect x="16" y="18" width="208" height="24" rx="12" fill="#19302E" stroke="#2A4D47"/><path d="M28 19h162v22H28a11 11 0 0 1 0-22Z" fill="#58D6B3"/>
+    <text x="10" y="108" fill="#F2FAF7" font-family="sans-serif" font-size="43">19:52</text>
+    <rect x="151" y="64" width="79" height="49" rx="5" fill="none" stroke="#FFC857" stroke-dasharray="3 2"/>
+    <circle cx="171" cy="79" r="10" fill="none" stroke="#58D6B3" stroke-width="2"/><text x="188" y="82" fill="#9BB9B0" font-family="sans-serif" font-size="10">Shenzhen</text><text x="188" y="104" fill="#F2FAF7" font-family="sans-serif" font-size="18">28°</text>
+    <rect x="8" y="58" width="137" height="57" fill="none" stroke="#FFC857" stroke-dasharray="3 2"/>
+    <text x="2" y="53" fill="#FFC857" font-family="sans-serif" font-size="8">T01 137×57</text><text x="151" y="60" fill="#FFC857" font-family="sans-serif" font-size="8">W01 79×49</text>
+    <path d="M0 120h240M0 268h240" stroke="#587870" stroke-dasharray="2 2"/>
+  </g>
+  <g transform="translate(650 150)" font-family="sans-serif">
+    <text fill="#58D6B3" font-size="24" font-weight="700">布局规格</text>
+    <g fill="#F2FAF7" font-size="19"><text y="52">画布：240 × 320 px；沿用首页墨绿薄荷色板。</text><text y="88">T01 时间：左上锚点 (10, 58)，43 px Montserrat，显示区 137 × 57。</text><text y="124">W01 天气摘要：容器 (151, 64)，79 × 49；只读，不抢占顶部下滑手势。</text><text y="160">I01 图标： (159, 67)，24 × 24；PNG 原图与显示尺寸均为 24 × 24。</text><text y="196">L01 城市： (188, 72)，11 px，#9BB9B0；默认“深圳”。</text><text y="232">L02 温度： (188, 87)，18 px，#F2FAF7；格式 -99°～99°。</text><text y="268">状态：联网加载中显示“--”；失败保留最近成功值，超过 24 h 显示“--”。</text></g>
+    <text y="338" fill="#58D6B3" font-size="24" font-weight="700">资源与映射</text>
+    <g fill="#F2FAF7" font-size="18"><text y="380">源目录：app/ui/icon/png/weather-*.png</text><text y="414">运行时：R:/littlefs/png/weather-*.png</text><text y="448">100/150 → clear；101–104 → cloudy；</text><text y="482">300–318 → rain；400–499 → snow；500–515 → haze；其余 → overcast。</text></g>
+    <text y="552" fill="#FFC857" font-size="20">说明：城市和温度为动态文案；点击与手势行为保持首页现状。</text>
+  </g>
+</svg>

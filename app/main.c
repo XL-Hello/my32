@@ -23,6 +23,7 @@
 #include "littlefs_esp.h"
 #include "littlefs_test.h"
 #include "wifi_manager.h"
+#include "weather_service.h"
 #include "mqtt_test_client.h"
 #include "ui_font.h"
 #include "system_monitor_ui.h"
@@ -87,6 +88,9 @@ void my_main()
 
     ESP_ERROR_CHECK(wifi_manager_init());
     log_info("Wi-Fi manager initialized");
+
+    ESP_ERROR_CHECK(weather_service_init());
+    log_info("weather service initialized");
 
     ESP_ERROR_CHECK(mqtt_test_client_init());
     log_info("MQTT test client initialized");

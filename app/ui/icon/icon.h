@@ -24,6 +24,12 @@
 #define UI_ICON_PATH_UPDATE              "R:/littlefs/png/update.png"           // 24*24
 #define UI_ICON_PATH_DOWNLOAD            "R:/littlefs/png/download.png"         // 24*24
 #define UI_ICON_PATH_INSTALL             "R:/littlefs/png/install.png"          // 24*24
+#define UI_ICON_PATH_WEATHER_CLEAR       "R:/littlefs/png/weather-clear.png"    // 24*24
+#define UI_ICON_PATH_WEATHER_CLOUDY      "R:/littlefs/png/weather-cloudy.png"   // 24*24
+#define UI_ICON_PATH_WEATHER_OVERCAST    "R:/littlefs/png/weather-overcast.png" // 24*24
+#define UI_ICON_PATH_WEATHER_RAIN        "R:/littlefs/png/weather-rain.png"     // 24*24
+#define UI_ICON_PATH_WEATHER_SNOW        "R:/littlefs/png/weather-snow.png"     // 24*24
+#define UI_ICON_PATH_WEATHER_HAZE        "R:/littlefs/png/weather-haze.png"     // 24*24
 
 #define UI_ICON_PATH_INFO                "R:/littlefs/png/info_32.png"          // 32*32
 #define UI_ICON_PATH_SETTINGS            "R:/littlefs/png/settings.png"         // 32*32
