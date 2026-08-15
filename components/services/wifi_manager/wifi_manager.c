@@ -23,7 +23,7 @@
 #define WIFI_MANAGER_NVS_KEY_SSID "ssid"
 #define WIFI_MANAGER_NVS_KEY_PASSWORD "password"
 #define WIFI_MANAGER_MAX_RETRY_COUNT 5
-#define WIFI_MANAGER_CONNECTIVITY_URL "https://connectivitycheck.gstatic.com/generate_204"
+#define WIFI_MANAGER_CONNECTIVITY_URL "https://www.baidu.com/"
 #define WIFI_MANAGER_CONNECTIVITY_TIMEOUT_MS 4000
 
 static SemaphoreHandle_t s_lock;
@@ -162,8 +162,15 @@ static void wifi_manager_run_connectivity_check(void *arg)
     bool internet_available = false;
     if (client != NULL) {
         const esp_err_t err = esp_http_client_perform(client);
-        internet_available = err == ESP_OK && esp_http_client_get_status_code(client) == 204;
+        const int status_code = esp_http_client_get_status_code(client);
+        internet_available = err == ESP_OK && status_code >= 200 && status_code < 400;
+        if (!internet_available) {
+            log_warn("HTTPS connectivity check failed: url=%s err=%s status=%d",
+                     WIFI_MANAGER_CONNECTIVITY_URL, esp_err_to_name(err), status_code);
+        }
         esp_http_client_cleanup(client);
+    } else {
+        log_warn("HTTPS connectivity check client initialization failed");
     }
 
     bool should_sync_time = false;

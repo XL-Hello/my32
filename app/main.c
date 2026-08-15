@@ -23,6 +23,7 @@
 #include "littlefs_esp.h"
 #include "littlefs_test.h"
 #include "wifi_manager.h"
+#include "mqtt_test_client.h"
 #include "ui_font.h"
 #include "system_monitor_ui.h"
 #include "local_ota.h"
@@ -86,6 +87,9 @@ void my_main()
 
     ESP_ERROR_CHECK(wifi_manager_init());
     log_info("Wi-Fi manager initialized");
+
+    ESP_ERROR_CHECK(mqtt_test_client_init());
+    log_info("MQTT test client initialized");
 
     // W25Q64 自检完成后会释放软件 SPI 使用的 GPTimer。
     esp_err_t w25q64_result = w25q64_communication_test();

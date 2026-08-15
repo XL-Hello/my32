@@ -1,0 +1,20 @@
+menu "MQTT 测试"
+
+config MQTT_TEST_BROKER_URI
+    string "MQTT Broker URI"
+    default "mqtt://192.168.1.100:1883"
+    help
+        MQTT Broker 地址，例如 mqtt://192.168.1.100:1883。
+        请替换为运行 Mosquitto、EMQX 等 Broker 的电脑在局域网中的 IPv4 地址。
+
+config MQTT_TEST_TOPIC
+    string "遥测上报主题"
+    default "esp32s3/test/telemetry"
+
+config MQTT_TEST_CLIENT_ID
+    string "MQTT 客户端 ID"
+    default "esp32s3-mqtt-test"
+    help
+        同一 Broker 上每台设备必须使用不同的客户端 ID。
+
+endmenu
