@@ -1,5 +1,18 @@
 #include "platform.h"
 
+#include <sys/time.h>
+
+uint64_t glog_rtc_time_ms(void)
+{
+    struct timeval time_value;
+
+    if (gettimeofday(&time_value, NULL) != 0 || time_value.tv_sec < 0) {
+        return 0U;
+    }
+    return (uint64_t)time_value.tv_sec * 1000ULL +
+           (uint64_t)time_value.tv_usec / 1000ULL;
+}
+
 glog_status_t glog_task_create(char *task_name, task_cb cb, void *arg,
                                void **task_handle)
 {

@@ -24,6 +24,9 @@ typedef enum {
 //延时
 #define glog_delay_ms(ms) vTaskDelay(pdMS_TO_TICKS(ms))
 
+/* 获取系统 RTC 时间戳，单位为 Unix Epoch 毫秒。 */
+uint64_t glog_rtc_time_ms(void);
+
 // 堆申请
 #define glog_ps_malloc(size) ps_malloc(size)
 #define glog_ps_calloc(count, size) ps_calloc(count, size)
